@@ -1,0 +1,2328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ tool_name }} - FileVellum</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/29.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+    <style>
+        .tool-container { 
+            max-width: 700px; 
+            margin: 40px auto; 
+            background: #fff; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08); 
+            font-family: sans-serif; 
+        }
+        .tool-header { text-align: center; margin-bottom: 25px; }
+        .tool-header h2 { font-size: 22px; color: #0f172a; margin-bottom: 6px; font-weight: 700; }
+        .tool-header p { font-size: 14px; color: #64748b; margin: 0; }
+
+        .drop-zone { 
+            border: 2px dashed #cbd5e1; 
+            background: #f8fafc; 
+            padding: 35px 20px; 
+            border-radius: 8px; 
+            text-align: center; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            margin-bottom: 20px; 
+        }
+        .drop-zone:hover { border-color: #2563eb; background: #f0fdf4; }
+        .drop-zone i { font-size: 38px; color: #2563eb; margin-bottom: 10px; display: block; }
+        .drop-zone p { font-weight: 600; color: #334155; font-size: 15px; margin: 0; }
+        
+        .pages-grid { 
+            display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; 
+            margin-top: 15px; max-height: 350px; overflow-y: auto; padding: 10px; 
+            border: 1px solid #cbd5e1; border-radius: 8px; background: #fafafa; 
+        }
+        .page-thumb { position: relative; border: 3px solid #cbd5e1; border-radius: 6px; cursor: pointer; background: white; padding: 5px; transition: all 0.2s; text-align: center; user-select: none; width: 110px; }
+        .page-thumb canvas { display: block; border-radius: 4px; width: 100%; height: auto; }
+        .page-thumb.selected { border-color: #2563eb; background: #eff6ff; box-shadow: 0 0 10px rgba(37, 99, 235, 0.4); }
+        .page-badge { position: absolute; top: 6px; left: 6px; background: rgba(0,0,0,0.75); color: white; font-size: 10px; padding: 2px 4px; border-radius: 4px; }
+        .order-badge { position: absolute; top: 6px; right: 6px; background: #2563eb; color: white; font-size: 12px; font-weight: bold; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+
+        .submit-btn { 
+            width: 100%; padding: 14px; background: #2563eb; color: white; 
+            border: none; border-radius: 6px; font-weight: bold; font-size: 16px; 
+            cursor: pointer; transition: 0.2s; display: block; text-align: center;
+        }
+        .submit-btn:hover { background: #1d4ed8; }
+
+        .reset-btn { 
+            width: 100% !important; padding: 12px !important; background: #f1f5f9 !important; 
+            color: #475569 !important; border: 1px solid #cbd5e1 !important; border-radius: 6px !important; 
+            font-weight: 600 !important; margin-top: 10px !important; cursor: pointer !important; 
+            text-align: center !important; display: block !important; transition: background 0.2s;
+        }
+        .reset-btn:hover { background: #e2e8f0 !important; color: #1e293b !important; }
+
+        #toast {
+            visibility: hidden; min-width: 300px; background: #1e293b; color: #fff;
+            border-radius: 10px; padding: 16px 20px; position: fixed; z-index: 99999;
+            right: 25px; bottom: 25px; font-size: 14px; display: flex; align-items: center; gap: 12px;
+            border-left: 5px solid #ef4444; opacity: 0; transform: translateY(20px); transition: all 0.3s ease;
+        }
+        #toast.show { visibility: visible; opacity: 1; transform: translateY(0); }
+        body { background:#f4f038 !important; color:#111; min-height:100vh; margin:0; }
+        .tool-container { border:2px solid #111; border-radius:22px; box-shadow:9px 9px 0 #111; margin:65px auto 100px; }
+        .submit-btn { background:#111; color:#fff; border-radius:10px; }
+        .submit-btn:hover { background:#333; }
+        .drop-zone:hover { border-color:#111; background:#fffbe0; }
+        .drop-zone i { color:#111; }
+        .page-thumb.selected { border-color:#111; background:#fff8c0; box-shadow:none; }
+        .order-badge { background:#111; }
+        .top-navbar { background:#111 !important; }
+        .top-navbar a { color:#fff !important; }
+        .site-footer {
+            background: #080808 !important;
+            color: #aaa;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 45px 35px 25px;
+            font-family: "Space Mono", monospace;
+        }
+
+        .footer-container {
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        .footer-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 30px;
+            padding-bottom: 35px;
+            border-bottom: 1px solid #333;
+        }
+
+        .footer-bottom {
+            background: #080808;
+        }
+
+        .footer-logo img {
+            display: block;
+
+            width: 180px;
+            max-height: 55px;
+
+            height: auto;
+            object-fit: contain;
+        }
+
+        .footer-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 20px;
+        }
+
+        .footer-email {
+            color: var(--yellow);
+            text-decoration: none;
+
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .5px;
+        }
+
+        .footer-socials {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .footer-socials a {
+            width: 38px;
+            height: 38px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border: 1px solid #444;
+            border-radius: 50%;
+
+            color: var(--white);
+            font-size: 14px;
+
+            transition: .25s ease;
+        }
+
+        .footer-socials a:hover {
+            background: var(--yellow);
+            border-color: var(--yellow);
+            color: var(--black);
+
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+
+            padding-top: 25px;
+
+            font-size: 10px;
+            letter-spacing: .8px;
+        }
+
+        @media (max-width: 680px) {
+            .site-footer { padding: 35px 20px 22px; }
+            .footer-top { flex-direction: column; align-items: center; text-align: center; }
+            .footer-right { align-items: center; }
+            .footer-socials { justify-content: center; flex-wrap: wrap; }
+            .footer-bottom { flex-direction: column; align-items: center; text-align: center; gap: 12px; line-height: 1.7; }
+        }
+
+        @media (max-width: 700px) {
+            .tool-container { margin: 35px 14px 70px; padding: 20px; }
+        }
+
+        /* FileVellum homepage-matched navigation: self-contained styles */
+        .fv-tool-navbar { background:transparent !important; border:0 !important; padding:0; box-sizing:border-box; width:100%; }
+        .fv-tool-nav-inner { width:100%; max-width:1280px; height:90px; margin:auto; padding:0 35px; box-sizing:border-box; display:flex; justify-content:space-between; align-items:center; gap:20px; }
+        .fv-tool-logo { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; background:#000; border-radius:10px; padding:8px 40px; line-height:0; text-decoration:none; height:56px; box-sizing:border-box; }
+        .fv-tool-logo img { display:block; width:auto; height:44px; object-fit:contain; }
+        .fv-tool-nav-actions { display:flex; gap:12px; align-items:center; }
+        .fv-tool-nav-actions a { display:inline-flex; gap:9px; align-items:center; justify-content:center; text-decoration:none !important; font:800 14px Arial,sans-serif; border:2px solid #111; border-radius:999px; padding:12px 20px; transition:transform .2s, background .2s; }
+        .fv-tool-home { background:#111 !important; color:#ffeb18 !important; }
+        .fv-tool-explore { background:#fff !important; color:#111 !important; }
+        .fv-tool-nav-actions a:hover { transform:translateY(-2px); }
+        @media(max-width:650px){ .fv-tool-nav-inner{height:75px;padding:0 18px;} .fv-tool-logo{height:56px;padding:8px 22px;} .fv-tool-logo img{height:40px;max-width:145px;} .fv-tool-nav-actions{gap:6px;} .fv-tool-nav-actions a{padding:10px 12px;font-size:12px;} .fv-tool-explore{display:none !important;} }
+    </style>
+<style>.fv-option-label{display:block;font-weight:700;margin:14px 0 8px}.fv-option-input{display:block;width:100%;padding:12px;border:2px solid #111;border-radius:9px;box-sizing:border-box;margin-bottom:14px}</style>{% if tool_type == 'edit_image' %}<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css"><script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>{% endif %}
+{% if tool_type == 'edit_image' %}
+<style>
+
+        .editor-box { max-width: 900px; margin: 30px auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .preview-area { text-align: center; margin: 20px 0; max-height: 500px; background: #f8f9fa; border: 2px dashed #ddd; border-radius: 8px; padding: 10px; }
+        #image-preview { max-width: 100%; display: block; }
+        .controls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; background: #f1f5f9; padding: 15px; border-radius: 8px; }
+        .control-group { display: flex; flex-direction: column; text-align: left; }
+        .control-group label { font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #334155; }
+        .control-group input, .control-group select { padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+        .btn-submit { display: block; width: 100%; margin-top: 20px; padding: 12px; background: #2563eb; color: #fff; border: none; font-size: 16px; font-weight: 600; border-radius: 8px; cursor: pointer; text-align: center; }
+        .btn-submit:hover { background: #1d4ed8; }
+        /* Baki saari styling ke sath yeh bhi daal dein */
+        .reset-btn { 
+            width: 100% !important; 
+            padding: 12px !important; 
+            background: #f1f5f9 !important; 
+            color: #475569 !important; 
+            border: 1px solid #cbd5e1 !important; 
+            border-radius: 6px !important; 
+            font-weight: 600 !important; 
+            margin-top: 10px !important; 
+            cursor: pointer !important; 
+            text-align: center !important; 
+            display: block !important;
+        }
+        .reset-btn:hover { 
+            background: #e2e8f0 !important; 
+        }
+    
+/* Unified FileVellum branding, isolated to dedicated tool */
+.fv-special-area {padding:25px 16px 75px;min-height:60vh}
+.fv-special-area .tool-container,.fv-special-area .editor-box,.fv-special-area .sig-app-container {border:2px solid #111;border-radius:20px;box-shadow:8px 8px 0 #111;margin:35px auto;background:#fff;max-width:100%;}
+.fv-special-area .tool-container{max-width:850px}
+.fv-special-area .editor-box{max-width:950px}
+.fv-special-area .sig-app-container{max-width:1050px}
+.fv-special-area .submit-btn,.fv-special-area .btn-submit,.fv-special-area .tab-btn.active{background:#111;color:#ffeb18}
+.fv-special-area .submit-btn:hover,.fv-special-area .btn-submit:hover{background:#333}
+.fv-special-area .grid-layout{max-width:100%;}
+@media(max-width:700px){.fv-special-area .grid-layout{grid-template-columns:1fr}.fv-special-area .tool-container,.fv-special-area .editor-box,.fv-special-area .sig-app-container{padding:18px}.fv-special-area .viewer-wrapper{max-width:100%;}}
+</style>
+{% endif %}
+{% if tool_type == 'protect_pdf' %}
+<style>
+
+        .tool-container { max-width: 550px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); font-family: sans-serif; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #334155; }
+        .form-group input[type="file"], .form-group input[type="password"] { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; background: #f8fafc; }
+        .submit-btn { width: 100%; padding: 14px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; }
+        .submit-btn:hover { background: #1d4ed8; }
+        .reset-btn { width: 100%; padding: 10px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: 600; margin-top: 10px; cursor: pointer; text-align: center; }
+    
+/* Unified FileVellum branding, isolated to dedicated tool */
+.fv-special-area {padding:25px 16px 75px;min-height:60vh}
+.fv-special-area .tool-container,.fv-special-area .editor-box,.fv-special-area .sig-app-container {border:2px solid #111;border-radius:20px;box-shadow:8px 8px 0 #111;margin:35px auto;background:#fff;max-width:100%;}
+.fv-special-area .tool-container{max-width:850px}
+.fv-special-area .editor-box{max-width:950px}
+.fv-special-area .sig-app-container{max-width:1050px}
+.fv-special-area .submit-btn,.fv-special-area .btn-submit,.fv-special-area .tab-btn.active{background:#111;color:#ffeb18}
+.fv-special-area .submit-btn:hover,.fv-special-area .btn-submit:hover{background:#333}
+.fv-special-area .grid-layout{max-width:100%;}
+@media(max-width:700px){.fv-special-area .grid-layout{grid-template-columns:1fr}.fv-special-area .tool-container,.fv-special-area .editor-box,.fv-special-area .sig-app-container{padding:18px}.fv-special-area .viewer-wrapper{max-width:100%;}}
+</style>
+{% endif %}
+{% if tool_type == 'rotate_pdf' %}
+<style>
+
+        .tool-container { max-width: 800px; margin: 30px auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); font-family: sans-serif; }
+        .grid-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; margin-top: 20px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #334155; }
+        .form-group input[type="file"] { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; background: #f8fafc; }
+        
+        /* Preview Area */
+        .preview-box { border: 2px dashed #cbd5e1; border-radius: 8px; background: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 350px; overflow: hidden; position: relative; padding: 15px; }
+        #previewImg { max-width: 100%; max-height: 320px; object-fit: contain; transition: transform 0.3s ease; }
+        #pdfCanvas { max-width: 100%; max-height: 320px; transition: transform 0.3s ease; display: none; }
+        .placeholder-text { color: #94a3b8; text-align: center; }
+
+        .rotate-controls { display: flex; gap: 10px; margin-top: 15px; }
+        .rotate-btn { flex: 1; padding: 10px; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; cursor: pointer; font-weight: 600; color: #334155; text-align: center; }
+        .rotate-btn:hover { background: #f1f5f9; color: #2563eb; }
+
+        .submit-btn { width: 100%; padding: 14px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 20px; }
+        .submit-btn:hover { background: #1d4ed8; }
+        .reset-btn { 
+            width: 100%; 
+            padding: 12px; 
+            background: #f1f5f9; 
+            color: #475569; 
+            border: 1px solid #cbd5e1; 
+            border-radius: 6px; 
+            font-weight: 600; 
+            margin-top: 10px; 
+            cursor: pointer; 
+            text-align: center; 
+            transition: background 0.2s;
+        }
+        .reset-btn:hover { 
+            background: #e2e8f0; 
+        }
+    
+/* Unified FileVellum branding, isolated to dedicated tool */
+.fv-special-area {padding:25px 16px 75px;min-height:60vh}
+.fv-special-area .tool-container,.fv-special-area .editor-box,.fv-special-area .sig-app-container {border:2px solid #111;border-radius:20px;box-shadow:8px 8px 0 #111;margin:35px auto;background:#fff;max-width:100%;}
+.fv-special-area .tool-container{max-width:850px}
+.fv-special-area .editor-box{max-width:950px}
+.fv-special-area .sig-app-container{max-width:1050px}
+.fv-special-area .submit-btn,.fv-special-area .btn-submit,.fv-special-area .tab-btn.active{background:#111;color:#ffeb18}
+.fv-special-area .submit-btn:hover,.fv-special-area .btn-submit:hover{background:#333}
+.fv-special-area .grid-layout{max-width:100%;}
+@media(max-width:700px){.fv-special-area .grid-layout{grid-template-columns:1fr}.fv-special-area .tool-container,.fv-special-area .editor-box,.fv-special-area .sig-app-container{padding:18px}.fv-special-area .viewer-wrapper{max-width:100%;}}
+</style>
+{% endif %}
+{% if tool_type == 'sign_pdf' %}
+<style>
+
+        .sig-app-container { max-width: 1000px; margin: 20px auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); font-family: sans-serif; }
+        .grid-layout { display: grid; grid-template-columns: 320px 1fr; gap: 20px; margin-top: 20px; }
+        .tab-btns { display: flex; gap: 8px; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 10px; background: #f1f5f9; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; }
+        .tab-btn.active { background: #2563eb; color: #fff; }
+        canvas.draw-canvas { border: 2px dashed #cbd5e1; border-radius: 6px; background: #f8fafc; cursor: crosshair; width: 100%; height: 140px; touch-action: none; }
+        
+        .viewer-wrapper { position: relative; border: 2px solid #e2e8f0; border-radius: 8px; overflow: auto; max-height: 600px; background: #525659; text-align: center; padding: 20px 0; }
+        .page-container { display: inline-block; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.3); background: #fff; }
+        #pdfCanvas { display: block; }
+        #imgPreviewElem { display: none; max-width: 100%; height: auto; }
+
+        #sigOverlay {
+            position: absolute; top: 50px; left: 50px; width: 150px; height: 60px;
+            border: 2px dashed #2563eb; background: rgba(37, 99, 235, 0.1);
+            cursor: move; display: none; box-sizing: border-box; z-index: 10;
+        }
+        #sigOverlay img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+        .resize-handle { touch-action:none; position: absolute; width: 10px; height: 10px; background: #2563eb; bottom: -5px; right: -5px; cursor: se-resize; }
+    
+/* Unified FileVellum branding, isolated to dedicated tool */
+.fv-special-area {padding:25px 16px 75px;min-height:60vh}
+.fv-special-area .tool-container,.fv-special-area .editor-box,.fv-special-area .sig-app-container {border:2px solid #111;border-radius:20px;box-shadow:8px 8px 0 #111;margin:35px auto;background:#fff;max-width:100%;}
+.fv-special-area .tool-container{max-width:850px}
+.fv-special-area .editor-box{max-width:950px}
+.fv-special-area .sig-app-container{max-width:1050px}
+.fv-special-area .submit-btn,.fv-special-area .btn-submit,.fv-special-area .tab-btn.active{background:#111;color:#ffeb18}
+.fv-special-area .submit-btn:hover,.fv-special-area .btn-submit:hover{background:#333}
+.fv-special-area .grid-layout{max-width:100%;}
+@media(max-width:700px){.fv-special-area .grid-layout{grid-template-columns:1fr}.fv-special-area .tool-container,.fv-special-area .editor-box,.fv-special-area .sig-app-container{padding:18px}.fv-special-area .viewer-wrapper{max-width:100%;}}
+</style>
+{% endif %}
+{% if tool_type == 'watermark' %}
+<style>
+
+        .tool-container { max-width: 600px; margin: 40px auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); font-family: sans-serif; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #334155; }
+        .form-group input[type="text"], .form-group input[type="file"], .form-group input[type="range"] { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
+        .range-value { font-weight: bold; color: #2563eb; float: right; }
+        .submit-btn { width: 100%; padding: 14px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: bold; font-size: 16px; cursor: pointer; transition: background 0.2s; }
+        .submit-btn:hover { background: #1d4ed8; }
+    
+/* Unified FileVellum branding, isolated to dedicated tool */
+.fv-special-area {padding:25px 16px 75px;min-height:60vh}
+.fv-special-area .tool-container,.fv-special-area .editor-box,.fv-special-area .sig-app-container {border:2px solid #111;border-radius:20px;box-shadow:8px 8px 0 #111;margin:35px auto;background:#fff;max-width:100%;}
+.fv-special-area .tool-container{max-width:850px}
+.fv-special-area .editor-box{max-width:950px}
+.fv-special-area .sig-app-container{max-width:1050px}
+.fv-special-area .submit-btn,.fv-special-area .btn-submit,.fv-special-area .tab-btn.active{background:#111;color:#ffeb18}
+.fv-special-area .submit-btn:hover,.fv-special-area .btn-submit:hover{background:#333}
+.fv-special-area .grid-layout{max-width:100%;}
+@media(max-width:700px){.fv-special-area .grid-layout{grid-template-columns:1fr}.fv-special-area .tool-container,.fv-special-area .editor-box,.fv-special-area .sig-app-container{padding:18px}.fv-special-area .viewer-wrapper{max-width:100%;}}
+</style>
+{% endif %}
+
+<style id="filevellum-homepage-footer-match">
+    .yellowbee-footer {
+      background-color: #000;
+      color: #fff;
+      padding: 60px 50px 30px 50px;
+      border-top: 4px solid #f4f038;
+      position: relative;
+      z-index: 30;
+    }
+
+    .footer-inner {
+      max-width: 1300px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 30px;
+      border-bottom: 1px solid #333;
+      padding-bottom: 40px;
+    }
+
+    .footer-email {
+      color: #f4f038;
+      font-weight: 900;
+      font-size: 18px;
+      text-decoration: none;
+      letter-spacing: 1px;
+    }
+
+    .social-icons {
+      display: flex;
+      gap: 15px;
+    }
+
+    .social-icon-btn {
+      width: 45px;
+      height: 45px;
+      border: 2px solid #444;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .social-icon-btn:hover {
+      border-color: #f4f038;
+      color: #f4f038;
+      background: #111;
+    }
+
+    .footer-bottom-row {
+      max-width: 1300px;
+      margin: 30px auto 0 auto;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #777;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+.yellowbee-footer {padding:58px 50px 28px;}
+.yellowbee-footer .footer-inner {max-width:1300px; margin:0 auto; display:grid; grid-template-columns:minmax(220px,1fr) auto minmax(220px,1fr); align-items:center; justify-content:initial; gap:35px; text-align:left; padding-bottom:42px; border-bottom:1px solid #333;}
+.yellowbee-footer .footer-brand {display:block; width:100%; max-width:330px; line-height:0;}
+.yellowbee-footer .footer-brand img {width:100%; max-width:330px; height:auto; display:block;}
+.yellowbee-footer .footer-nav {display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:clamp(12px,1.7vw,27px);}
+.yellowbee-footer .footer-nav a {font-size:12px; font-weight:900; text-decoration:none; color:white; white-space:nowrap; letter-spacing:.35px;}
+.yellowbee-footer .footer-nav a:hover {color:#f4f038;}
+.yellowbee-footer .footer-right {justify-self:end; display:flex; flex-direction:column; align-items:flex-end; gap:18px;}
+.yellowbee-footer .footer-email {font-size:clamp(12px,1.2vw,17px); font-weight:900; color:#f4f038; text-decoration:none; letter-spacing:.3px; white-space:nowrap;}
+.yellowbee-footer .social-icons {display:flex; flex-wrap:wrap; justify-content:flex-end; gap:10px;}
+.yellowbee-footer .social-icon-btn {width:39px; height:39px;}
+.yellowbee-footer .footer-bottom-row {max-width:1300px; margin:24px auto 0; display:flex; justify-content:space-between; gap:20px; color:#858585; font-size:11px; letter-spacing:.6px;}
+@media(max-width:1050px){.yellowbee-footer .footer-inner {grid-template-columns:1fr 1fr; gap:28px;} .yellowbee-footer .footer-nav {grid-column:1/-1; grid-row:2;} .yellowbee-footer .footer-right {grid-column:2;grid-row:1;}}
+@media(max-width:650px){.yellowbee-footer{padding:44px 20px 25px;} .yellowbee-footer .footer-inner{grid-template-columns:1fr;justify-items:center;text-align:center;gap:28px;} .yellowbee-footer .footer-brand{max-width:270px;} .yellowbee-footer .footer-right{grid-column:1;grid-row:auto;justify-self:center;align-items:center;} .yellowbee-footer .footer-nav{grid-column:1;grid-row:auto;} .yellowbee-footer .social-icons{justify-content:center;} .yellowbee-footer .footer-bottom-row{flex-direction:column;align-items:center;text-align:center;gap:10px;}}
+
+/* Footer refinement: smaller logo, no navigation, portfolio icon */
+.yellowbee-footer .footer-inner {
+  display:flex; justify-content:space-between; align-items:center;
+  gap:28px; text-align:left;
+}
+.yellowbee-footer .footer-brand {width:240px; max-width:42%; flex:0 1 240px;}
+.yellowbee-footer .footer-brand img {width:100%; max-width:240px; height:auto;}
+.yellowbee-footer .footer-right {margin-left:auto; align-items:flex-end;}
+@media(max-width:650px){
+ .yellowbee-footer .footer-inner {flex-direction:column; text-align:center; gap:24px;}
+ .yellowbee-footer .footer-brand {width:210px; max-width:80%; flex:auto;}
+ .yellowbee-footer .footer-brand img {max-width:210px;}
+ .yellowbee-footer .footer-right {margin:0; align-items:center;}
+}
+
+/* Footer: left-aligned compact logo, right-aligned contact/socials */
+.yellowbee-footer .footer-inner {
+  display:flex !important;
+  flex-direction:row !important;
+  justify-content:space-between !important;
+  align-items:center !important;
+  text-align:left !important;
+  gap:32px;
+}
+.yellowbee-footer .footer-brand {
+  display:block; flex:0 0 auto !important;
+  width:185px !important; max-width:40% !important;
+  margin:0 !important;
+}
+.yellowbee-footer .footer-brand img {display:block; width:100% !important; max-width:185px !important; height:auto;}
+.yellowbee-footer .footer-right {
+  margin-left:auto !important;
+  display:flex; flex-direction:column; align-items:flex-end;
+  text-align:right;
+}
+.yellowbee-footer .social-icons {justify-content:flex-end;}
+@media(max-width:650px) {
+ .yellowbee-footer .footer-inner {flex-direction:column !important; text-align:center !important; gap:24px;}
+ .yellowbee-footer .footer-brand {max-width:75% !important; width:185px !important;}
+ .yellowbee-footer .footer-right {margin:0 !important; align-items:center; text-align:center;}
+ .yellowbee-footer .social-icons {justify-content:center;}
+}
+
+<style id="filevellum-compact-footer-only">
+/* More compact footer spacing; preserves existing colors, layout and content */
+.yellowbee-footer { padding: 20px 50px 8px !important; }
+.yellowbee-footer .footer-inner { padding-bottom: 11px !important; gap: 11px !important; }
+.yellowbee-footer .footer-bottom-row { margin-top: 7px !important; }
+@media(max-width:650px) {
+  .yellowbee-footer { padding: 17px 20px 8px !important; }
+  .yellowbee-footer .footer-inner { gap: 11px !important; padding-bottom: 11px !important; }
+  .yellowbee-footer .footer-bottom-row { margin-top: 6px !important; }
+}
+</style>
+
+<style>
+/* Preserve the existing About Founder logo dimensions in both pages. */
+.yellowbee-footer .footer-brand {
+  display: block !important;
+  width: 180px !important;
+  max-width: 40% !important;
+  flex: 0 0 180px !important;
+  line-height: 0;
+  margin: 0 !important;
+}
+.yellowbee-footer .footer-brand img {
+  display: block !important;
+  width: 180px !important;
+  max-width: 180px !important;
+  max-height: 55px !important;
+  height: auto !important;
+  object-fit: contain;
+}
+@media (max-width: 650px) {
+  .yellowbee-footer .footer-brand {
+    width: 180px !important;
+    max-width: 75% !important;
+    flex: 0 0 180px !important;
+  }
+  .yellowbee-footer .footer-brand img {
+    width: 180px !important;
+    max-width: 180px !important;
+  }
+}
+
+</style>
+
+<style id="filevellum-footer-spacing-match">
+/* Footer spacing only: match the requested compact footer strip on all pages. */
+.yellowbee-footer { padding: 20px 50px 8px !important; }
+.yellowbee-footer .footer-inner { padding-bottom: 11px !important; gap: 11px !important; }
+.yellowbee-footer .footer-bottom-row { margin-top: 7px !important; }
+@media (max-width: 650px) {
+  .yellowbee-footer { padding: 17px 20px 8px !important; }
+  .yellowbee-footer .footer-inner { gap: 11px !important; padding-bottom: 11px !important; }
+  .yellowbee-footer .footer-bottom-row { margin-top: 6px !important; }
+}
+</style>
+
+<style id="filevellum-footer-spacing-fix-v2">
+/* Footer-only correction: consistent spacing and no yellow strip below footer. */
+html, body { min-height: 100%; }
+body { min-height: 100vh; display: flex; flex-direction: column; }
+.yellowbee-footer { margin-top: auto !important; flex-shrink: 0; box-sizing: border-box; }
+.yellowbee-footer .footer-inner { padding-bottom: 11px !important; gap: 11px !important; }
+.yellowbee-footer .footer-bottom-row { margin-top: 7px !important; }
+@media (max-width: 650px) {
+  .yellowbee-footer { padding: 17px 20px 8px !important; }
+  .yellowbee-footer .footer-inner { padding-bottom: 11px !important; gap: 11px !important; }
+  .yellowbee-footer .footer-bottom-row { margin-top: 6px !important; }
+}
+</style>
+
+
+<style id="filevellum-footer-reference-match">
+/* Footer reference match: compact logo, mono copyright type, and equal spacing on all pages. */
+.yellowbee-footer {
+  background: #000 !important;
+  color: #fff !important;
+  border-top: 0 !important;
+  padding: 18px 30px 0 !important;
+  box-sizing: border-box;
+  width: 100%;
+}
+.yellowbee-footer .footer-inner {
+  max-width: 1700px !important;
+  min-height: 82px;
+  margin: 0 auto !important;
+  padding: 0 0 14px !important;
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 24px !important;
+  border-bottom: 1px solid #333 !important;
+  box-sizing: border-box;
+}
+.yellowbee-footer .footer-brand {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  flex: 0 0 64px !important;
+  width: 64px !important;
+  max-width: 64px !important;
+  margin: 0 !important;
+  line-height: 0 !important;
+}
+.yellowbee-footer .footer-brand img {
+  display: block !important;
+  width: 64px !important;
+  max-width: 64px !important;
+  height: 54px !important;
+  max-height: 54px !important;
+  object-fit: contain !important;
+}
+.yellowbee-footer .footer-right {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  justify-content: center !important;
+  gap: 14px !important;
+  margin: 0 0 0 auto !important;
+  text-align: right !important;
+}
+.yellowbee-footer .footer-email {
+  font-size: 16px !important;
+  letter-spacing: .3px !important;
+  font-weight: 900 !important;
+}
+.yellowbee-footer .social-icons {
+  display: flex !important;
+  justify-content: flex-end !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+}
+.yellowbee-footer .social-icon-btn {
+  width: 46px !important;
+  height: 46px !important;
+  box-sizing: border-box;
+}
+.yellowbee-footer .footer-bottom-row {
+  width: calc(100% + 60px) !important;
+  max-width: none !important;
+  margin: 0 -30px !important;
+  padding: 25px 30px !important;
+  min-height: 76px;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 20px !important;
+  box-sizing: border-box;
+  border-top: 1px solid #222 !important;
+  border-bottom: 1px solid #222 !important;
+  background: #000 !important;
+  color: #777 !important;
+  font-family: "Space Mono", monospace !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  line-height: 24px !important;
+  letter-spacing: .5px !important;
+  text-transform: uppercase !important;
+}
+.yellowbee-footer .footer-bottom-row span {
+  font-family: "Space Mono", monospace !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  letter-spacing: .5px !important;
+}
+@media (max-width: 650px) {
+  .yellowbee-footer { padding: 18px 20px 0 !important; }
+  .yellowbee-footer .footer-inner {
+    min-height: 0; padding-bottom: 16px !important;
+    flex-direction: column !important; gap: 18px !important;
+    justify-content: center !important; text-align: center !important;
+  }
+  .yellowbee-footer .footer-brand { flex-basis: 64px !important; }
+  .yellowbee-footer .footer-right { margin: 0 !important; align-items: center !important; text-align: center !important; }
+  .yellowbee-footer .social-icons { justify-content: center !important; }
+  .yellowbee-footer .footer-bottom-row {
+    width: calc(100% + 40px) !important; margin: 0 -20px !important;
+    padding: 20px !important; min-height: 76px;
+    flex-direction: column !important; gap: 8px !important;
+    text-align: center !important;
+  }
+}
+</style>
+
+
+<style id="filevellum-footer-line-above-content-final">
+/* Matching subtle separator directly above the logo and contact/social area. */
+.yellowbee-footer { border-top: 0 !important; }
+.yellowbee-footer .footer-inner {
+  border-top: 1px solid #333 !important;
+  padding-top: 25px !important;
+  box-sizing: border-box !important;
+}
+</style>
+</head>
+<body>
+    <header class="fv-tool-navbar">
+        <div class="fv-tool-nav-inner">
+            <a href="/" class="fv-tool-logo" aria-label="FileVellum Homepage"><img src="{{ url_for('static', filename='images/logo.png') }}" alt=\"FileVellum logo\"></a>
+            <nav class="fv-tool-nav-actions" aria-label="Main navigation">
+                <a href="/" class="fv-tool-home"><i class="fa-solid fa-house"></i> Home</a>
+                <a href="/#tools" class="fv-tool-explore"><i class="fa-solid fa-magnifying-glass"></i> Explore Tools</a>
+            </nav>
+        </div>
+    </header>
+
+    <div id="toast"></div>
+
+    {% if tool_type in ['edit_image','protect_pdf','rotate_pdf','sign_pdf','watermark','unlock_pdf'] %}
+    <main class="fv-special-area">
+{% if tool_type == 'edit_image' %}
+
+    
+
+    <div class="editor-box">
+        <h2><i class="fa-solid fa-crop-simple"></i> Manual Photo Cropper & Resizer</h2>
+        <p>Upload your image, drag corners with your mouse to crop manually, change pixels, and rotate!</p>
+
+        <input type="file" id="image-file" accept="image/jpeg, image/png" style="margin-top: 15px;">
+
+        <div class="preview-area" id="preview-container" style="display: none;">
+            <img id="image-preview" src="" alt="Preview">
+        </div>
+
+        <div class="controls-grid" id="controls-panel" style="display: none;">
+            <div class="control-group">
+                <label>New Width (Pixels - Optional):</label>
+                <input type="number" id="img-width" placeholder="Leave blank to keep cropped size">
+            </div>
+            <div class="control-group">
+                <label>New Height (Pixels - Optional):</label>
+                <input type="number" id="img-height" placeholder="Leave blank to keep cropped size">
+            </div>
+            <div class="control-group">
+                <label>Rotate Angle:</label>
+                <select id="img-rotate">
+                    <option value="0">0° (None)</option>
+                    <option value="90">90° Clockwise</option>
+                    <option value="180">180° Turn</option>
+                    <option value="270">270° Clockwise</option>
+                </select>
+            </div>
+        </div>
+
+        <button class="btn-submit" id="btn-process" style="display: none;" onclick="processImage()">
+            <i class="fa-solid fa-download"></i> Crop, Resize & Download Photo
+        </button>
+        <button type="button" class="reset-btn" onclick="window.location.reload();">
+            <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+        </button>
+    </div>
+
+    <script>
+(() => {
+    'use strict';
+
+    const fileInput = document.getElementById('image-file');
+    const preview = document.getElementById('image-preview');
+    const previewContainer = document.getElementById('preview-container');
+    const controlsPanel = document.getElementById('controls-panel');
+    const processButton = document.getElementById('btn-process');
+    const widthInput = document.getElementById('img-width');
+    const heightInput = document.getElementById('img-height');
+    const rotateInput = document.getElementById('img-rotate');
+    let uploadedFile = null;
+    let cropper = null;
+    let processing = false;
+
+    function showError(message) {
+        const toast = document.getElementById('toast');
+        if (toast) {
+            toast.textContent = message;
+            toast.style.display = 'block';
+            toast.classList.add('error');
+        } else {
+            window.alert(message);
+        }
+    }
+
+    function destroyCropper() {
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+    }
+
+    fileInput.addEventListener('change', () => {
+        const file = fileInput.files && fileInput.files[0];
+        destroyCropper();
+        uploadedFile = null;
+        processButton.disabled = true;
+
+        if (!file) {
+            previewContainer.style.display = 'none';
+            controlsPanel.style.display = 'none';
+            processButton.style.display = 'none';
+            return;
+        }
+
+        if (!['image/jpeg', 'image/png'].includes(file.type)) {
+            fileInput.value = '';
+            showError('Please select a JPG or PNG image.');
+            return;
+        }
+        if (file.size > 30 * 1024 * 1024) {
+            fileInput.value = '';
+            showError('Image size must not exceed 30 MB.');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onerror = () => showError('Unable to read this image. Please try another file.');
+        reader.onload = () => {
+            preview.onload = () => {
+                try {
+                    destroyCropper();
+                    cropper = new Cropper(preview, {
+                        aspectRatio: NaN,
+                        viewMode: 1,
+                        autoCropArea: 0.8,
+                        responsive: true,
+                        background: false,
+                        checkOrientation: true
+                    });
+                    uploadedFile = file;
+                    previewContainer.style.display = 'block';
+                    controlsPanel.style.display = 'grid';
+                    processButton.style.display = 'block';
+                    processButton.disabled = false;
+                } catch (error) {
+                    showError('Unable to initialize the image editor. Please reload and try again.');
+                }
+            };
+            preview.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    async function processImage() {
+        if (processing) return;
+        if (!uploadedFile || !cropper) {
+            showError('Please upload an image first.');
+            return;
+        }
+
+        const widthValue = widthInput.value.trim();
+        const heightValue = heightInput.value.trim();
+        const validDimension = value => value === '' || (/^\d+$/.test(value) && Number(value) >= 1 && Number(value) <= 12000);
+        if (!validDimension(widthValue) || !validDimension(heightValue)) {
+            showError('Width and height must be whole numbers between 1 and 12000 pixels.');
+            return;
+        }
+
+        const formData = new FormData();
+        const cropData = cropper.getData(true);
+        formData.append('file', uploadedFile, uploadedFile.name);
+        formData.append('tool_type', 'edit_image');
+        formData.append('crop_x', cropData.x);
+        formData.append('crop_y', cropData.y);
+        formData.append('crop_w', cropData.width);
+        formData.append('crop_h', cropData.height);
+        formData.append('width', widthValue);
+        formData.append('height', heightValue);
+        formData.append('rotate', rotateInput.value);
+
+        processing = true;
+        processButton.disabled = true;
+        const originalLabel = processButton.innerHTML;
+        processButton.textContent = 'Processing...';
+
+        try {
+            const response = await fetch('/api/process', { method: 'POST', body: formData });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || !data.success || !data.filename) {
+                throw new Error(data.error || 'Unable to process the image. Please try again.');
+            }
+
+            // Direct browser download from Flask's attachment endpoint.
+            const downloadUrl = '/download/' + encodeURIComponent(data.filename);
+            window.location.assign(downloadUrl);
+        } catch (error) {
+            showError(error.message || 'An unexpected error occurred. Please try again.');
+        } finally {
+            processing = false;
+            processButton.disabled = false;
+            processButton.innerHTML = originalLabel;
+        }
+    }
+
+    window.processImage = processImage;
+    window.addEventListener('beforeunload', destroyCropper);
+})();
+</script>
+
+{% endif %}
+{% if tool_type == 'protect_pdf' %}
+
+    
+
+    <div class="tool-container">
+        <h2><i class="fa-solid fa-lock"></i> Protect PDF Security</h2>
+        <p style="color: #64748b; margin-bottom: 25px;">Upload your PDF file and set a password to secure it.</p>
+
+        <form class="fv-special-form" action="/api/process" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="tool_type" value="protect_pdf">
+            
+            <div class="form-group">
+                <label>1. Select PDF File:</label>
+                <input type="file" name="file" accept=".pdf" required>
+            </div>
+
+            <div class="form-group">
+                <label>2. Set Security Password:</label>
+                <input type="password" name="password" placeholder="Enter strong password" required>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                <i class="fa-solid fa-shield-halved"></i> Protect & Download PDF
+            </button>
+            <button type="button" class="reset-btn" onclick="window.location.reload();">
+                <i class="fa-solid fa-arrow-rotate-left"></i> Reset
+            </button>
+        </form>
+    </div>
+
+{% endif %}
+{% if tool_type == 'rotate_pdf' %}
+
+    
+
+    <div class="tool-container">
+        <h2><i class="fa-solid fa-rotate-right"></i> Universal Live File Rotator</h2>
+        <p style="color: #64748b;">Upload a file, preview it live, rotate it as needed, and download the result.</p>
+
+        <form class="fv-special-form" action="/api/process" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="tool_type" value="rotate_pdf">
+            <input type="hidden" name="angle" id="finalAngle" value="0">
+
+            <div class="grid-layout">
+                <!-- Left Controls -->
+                <div class="controls-panel">
+                    <div class="form-group">
+                        <label>1. Select File (PDF, JPG, PNG):</label>
+                        <input type="file" id="fileInput" name="file" accept=".pdf, .jpg, .jpeg, .png" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>2. Rotate Preview:</label>
+                        <div class="rotate-controls">
+                            <button type="button" class="rotate-btn" onclick="rotatePreview(-90)">
+                                <i class="fa-solid fa-rotate-left"></i> -90°
+                            </button>
+                            <button type="button" class="rotate-btn" onclick="rotatePreview(90)">
+                                <i class="fa-solid fa-rotate-right"></i> +90°
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn">
+                        <i class="fa-solid fa-download"></i> Rotate & Download
+                    </button>
+                    <button type="button" class="reset-btn" onclick="window.location.reload();">
+                        <i class="fa-solid fa-rotate-left"></i> Reset
+                    </button>
+                </div>
+
+                <!-- Right Live Preview -->
+                <div class="preview-box">
+                    <div id="placeholder" class="placeholder-text">
+                        <i class="fa-solid fa-image" style="font-size: 40px; margin-bottom: 10px; display: block;"></i>
+                        A live preview will appear when you select a file.
+                    </div>
+                    <img id="previewImg" style="display: none;" alt="Preview">
+                    <canvas id="pdfCanvas"></canvas>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+(() => {
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        let currentAngle = 0;
+        const fileInput = document.getElementById('fileInput');
+        const previewImg = document.getElementById('previewImg');
+        const pdfCanvas = document.getElementById('pdfCanvas');
+        const placeholder = document.getElementById('placeholder');
+        const pdfCtx = pdfCanvas.getContext('2d');
+
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+
+            placeholder.style.display = 'none';
+            currentAngle = 0;
+            updateRotation();
+
+            if(file.type.startsWith('image/')) {
+                pdfCanvas.style.display = 'none';
+                previewImg.style.display = 'block';
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    previewImg.src = evt.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else if(file.type === 'application/pdf') {
+                previewImg.style.display = 'none';
+                pdfCanvas.style.display = 'block';
+                const reader = new FileReader();
+                reader.onload = function() {
+                    pdfjsLib.getDocument(new Uint8Array(this.result)).promise.then(pdf => {
+                        pdf.getPage(1).then(page => {
+                            const viewport = page.getViewport({ scale: 0.8 });
+                            pdfCanvas.height = viewport.height;
+                            pdfCanvas.width = viewport.width;
+                            page.render({ canvasContext: pdfCtx, viewport: viewport });
+                        });
+                    });
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        });
+
+        function rotatePreview(step) {
+            currentAngle = (currentAngle + step) % 360;
+            if(currentAngle < 0) currentAngle += 360;
+            updateRotation();
+        }
+
+        function updateRotation() {
+            previewImg.style.transform = `rotate(${currentAngle}deg)`;
+            pdfCanvas.style.transform = `rotate(${currentAngle}deg)`;
+            document.getElementById('finalAngle').value = currentAngle;
+        }
+    
+})();
+</script>
+
+{% endif %}
+{% if tool_type == 'sign_pdf' %}
+
+    <div class="sig-app-container">
+        <h2><i class="fa-solid fa-signature"></i> Universal Document Signer</h2>
+        <p style="color: #64748b;">Upload a PDF, JPG, or PNG file, add your signature, then drag or resize it before downloading.</p>
+
+        <form id="signForm">
+            <input type="hidden" name="tool_type" value="sign_pdf">
+            
+            <div style="margin-bottom: 15px;">
+                <label style="font-weight: 600;">1. Choose Document (PDF, JPG, PNG):</label>
+                <input type="file" id="fileInput" name="file" accept=".pdf, .jpg, .jpeg, .png" required style="width: 100%; margin-top: 5px;">
+            </div>
+
+            <div class="grid-layout">
+                <div class="controls-panel">
+                    <div class="tab-btns">
+                        <button type="button" class="tab-btn active" onclick="switchTab('draw', event)">Draw Sign</button>
+                        <button type="button" class="tab-btn" onclick="switchTab('upload', event)">Upload Image</button>
+                    </div>
+
+                    <div id="drawTab">
+                        <canvas id="sigCanvas" class="draw-canvas"></canvas>
+                        <div style="display:flex; gap: 8px; margin-top: 8px;">
+                            <button type="button" onclick="clearPad()" style="flex:1; padding: 6px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;">Clear</button>
+                            <button type="button" onclick="useDrawnSign()" style="flex:2; padding: 6px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer;">Use Signature</button>
+                        </div>
+                    </div>
+
+                    <div id="uploadTab" style="display: none;">
+                        <input type="file" id="sigImageInput" accept=".png, .jpg, .jpeg" onchange="loadUploadedImage(event)" style="width: 100%;">
+                    </div>
+
+                    <input type="hidden" name="drawn_signature" id="drawnSignatureInput">
+                    <input type="hidden" name="pos_x" id="posX">
+                    <input type="hidden" name="pos_y" id="posY">
+                    <input type="hidden" name="width" id="posW">
+                    <input type="hidden" name="height" id="posH">
+                    <input type="hidden" name="render_scale" id="renderScale" value="1.2">
+
+                    <button type="submit" style="width: 100%; margin-top: 25px; padding: 14px; background: #2563eb; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">
+                        Apply & Download Signed File
+                    </button>
+                    <button type="button" class="reset-btn" onclick="window.location.reload();">
+                        <i class="fa-solid fa-arrow-rotate-left"></i> Reset 
+                    </button>
+                </div>
+
+                <div class="viewer-wrapper">
+                    <div class="page-container" id="pageContainer">
+                        <canvas id="pdfCanvas"></canvas>
+                        <img id="imgPreviewElem" alt="Document Preview">
+                        <div id="sigOverlay">
+                            <img id="sigImgPreview" alt="Sign">
+                            <div class="resize-handle" id="resizeHandle"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+(() => {
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        const fileInput = document.getElementById('fileInput');
+        const pdfCanvas = document.getElementById('pdfCanvas');
+        const imgPreviewElem = document.getElementById('imgPreviewElem');
+        const pdfCtx = pdfCanvas.getContext('2d');
+        const sigOverlay = document.getElementById('sigOverlay');
+        const sigImgPreview = document.getElementById('sigImgPreview');
+        let currentScale = 1.2;
+
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            if (file.type === 'application/pdf') {
+                imgPreviewElem.style.display = 'none';
+                pdfCanvas.style.display = 'block';
+                reader.onload = function() {
+                    pdfjsLib.getDocument(new Uint8Array(this.result)).promise.then(pdf => {
+                        pdf.getPage(1).then(page => {
+                            currentScale = 1.2;
+                            const viewport = page.getViewport({ scale: currentScale });
+                            pdfCanvas.height = viewport.height;
+                            pdfCanvas.width = viewport.width;
+                            document.getElementById('renderScale').value = currentScale;
+                            page.render({ canvasContext: pdfCtx, viewport: viewport });
+                        });
+                    });
+                };
+                reader.readAsArrayBuffer(file);
+            } else if (file.type.startsWith('image/')) {
+                pdfCanvas.style.display = 'none';
+                imgPreviewElem.style.display = 'block';
+                reader.onload = function(evt) {
+                    imgPreviewElem.src = evt.target.result;
+                    imgPreviewElem.onload = function() {
+                        currentScale = imgPreviewElem.naturalWidth / imgPreviewElem.width;
+                        document.getElementById('renderScale').value = currentScale;
+                    };
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function switchTab(tab, clickEvent) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            if(tab === 'draw') {
+                document.getElementById('drawTab').style.display = 'block';
+                document.getElementById('uploadTab').style.display = 'none';
+            } else {
+                document.getElementById('drawTab').style.display = 'none';
+                document.getElementById('uploadTab').style.display = 'block';
+            }
+            if (clickEvent && clickEvent.currentTarget) clickEvent.currentTarget.classList.add('active');
+        }
+
+        const pad = document.getElementById('sigCanvas');
+        const padCtx = pad.getContext('2d');
+        let drawing = false;
+        pad.width = pad.offsetWidth; pad.height = pad.offsetHeight;
+
+        let hasDrawnSignature = false;
+        function signaturePoint(event) {
+            const rect = pad.getBoundingClientRect();
+            return {
+                x: (event.clientX - rect.left) * (pad.width / rect.width),
+                y: (event.clientY - rect.top) * (pad.height / rect.height)
+            };
+        }
+        pad.addEventListener('pointerdown', (event) => {
+            drawing = true;
+            hasDrawnSignature = true;
+            pad.setPointerCapture(event.pointerId);
+            const point = signaturePoint(event);
+            padCtx.beginPath();
+            padCtx.moveTo(point.x, point.y);
+        });
+        pad.addEventListener('pointermove', (event) => {
+            if(!drawing) return;
+            const point = signaturePoint(event);
+            padCtx.lineWidth = 2.5;
+            padCtx.lineCap = 'round';
+            padCtx.lineJoin = 'round';
+            padCtx.strokeStyle = '#000';
+            padCtx.lineTo(point.x, point.y);
+            padCtx.stroke();
+        });
+        function stopSignatureDrawing() {
+            drawing = false;
+            padCtx.beginPath();
+        }
+        pad.addEventListener('pointerup', stopSignatureDrawing);
+        pad.addEventListener('pointercancel', stopSignatureDrawing);
+        pad.addEventListener('lostpointercapture', stopSignatureDrawing);
+
+        function clearPad() {
+            padCtx.clearRect(0, 0, pad.width, pad.height);
+            hasDrawnSignature = false;
+            document.getElementById('drawnSignatureInput').value = '';
+            sigImgPreview.removeAttribute('src');
+            sigOverlay.style.display = 'none';
+        }
+
+        function useDrawnSign() {
+            if(!hasDrawnSignature) {
+                alert('Please draw your signature first.');
+                return;
+            }
+            const dataURL = pad.toDataURL('image/png');
+            document.getElementById('drawnSignatureInput').value = dataURL;
+            sigImgPreview.src = dataURL;
+            sigOverlay.style.display = 'block';
+        }
+
+        function loadUploadedImage(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            if(!['image/png', 'image/jpeg'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+                alert('Please upload a PNG or JPG signature image up to 5 MB.');
+                e.target.value = '';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                document.getElementById('drawnSignatureInput').value = evt.target.result;
+                sigImgPreview.src = evt.target.result;
+                sigOverlay.style.display = 'block';
+            };
+            reader.onerror = function() { alert('Unable to read that signature image.'); };
+            reader.readAsDataURL(file);
+        }
+
+        // Inline HTML controls call these functions; expose them outside this IIFE.
+        window.switchTab = switchTab;
+        window.clearPad = clearPad;
+        window.useDrawnSign = useDrawnSign;
+        window.loadUploadedImage = loadUploadedImage;
+
+        let isDragging = false, startX, startY, initialLeft, initialTop;
+        sigOverlay.addEventListener('pointerdown', function(e) {
+            if(e.target.id === 'resizeHandle') return;
+            isDragging = true;
+            sigOverlay.setPointerCapture(e.pointerId);
+            startX = e.clientX; startY = e.clientY;
+            initialLeft = sigOverlay.offsetLeft; initialTop = sigOverlay.offsetTop;
+            e.preventDefault();
+        });
+        sigOverlay.addEventListener('pointermove', function(e) {
+            if(!isDragging) return;
+            const parent = document.getElementById('pageContainer');
+            const maxLeft = Math.max(0, parent.clientWidth - sigOverlay.offsetWidth);
+            const maxTop = Math.max(0, parent.clientHeight - sigOverlay.offsetHeight);
+            sigOverlay.style.left = Math.max(0, Math.min(maxLeft, initialLeft + e.clientX - startX)) + 'px';
+            sigOverlay.style.top = Math.max(0, Math.min(maxTop, initialTop + e.clientY - startY)) + 'px';
+        });
+        function stopDrag() { isDragging = false; }
+        sigOverlay.addEventListener('pointerup', stopDrag);
+        sigOverlay.addEventListener('pointercancel', stopDrag);
+        sigOverlay.addEventListener('lostpointercapture', stopDrag);
+
+        const resizeHandle = document.getElementById('resizeHandle');
+        let isResizing = false, startW, startH;
+        resizeHandle.addEventListener('pointerdown', function(e) {
+            e.stopPropagation();
+            isResizing = true;
+            resizeHandle.setPointerCapture(e.pointerId);
+            startX = e.clientX; startY = e.clientY;
+            startW = sigOverlay.offsetWidth; startH = sigOverlay.offsetHeight;
+            e.preventDefault();
+        });
+        resizeHandle.addEventListener('pointermove', function(e) {
+            if(!isResizing) return;
+            const parent = document.getElementById('pageContainer');
+            const maxW = Math.max(50, parent.clientWidth - sigOverlay.offsetLeft);
+            const maxH = Math.max(20, parent.clientHeight - sigOverlay.offsetTop);
+            sigOverlay.style.width = Math.max(50, Math.min(maxW, startW + e.clientX - startX)) + 'px';
+            sigOverlay.style.height = Math.max(20, Math.min(maxH, startH + e.clientY - startY)) + 'px';
+        });
+        function stopResize() { isResizing = false; }
+        resizeHandle.addEventListener('pointerup', stopResize);
+        resizeHandle.addEventListener('pointercancel', stopResize);
+        resizeHandle.addEventListener('lostpointercapture', stopResize);
+
+        document.getElementById('signForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const signatureData = document.getElementById('drawnSignatureInput').value;
+            const documentFile = fileInput.files[0];
+            const submitButton = this.querySelector('button[type="submit"]');
+            if(!documentFile) { alert('Please choose a PDF or image document first.'); return; }
+            if(!signatureData || !sigImgPreview.src) { alert('Please draw or upload your signature first.'); return; }
+
+            const pageContainer = document.getElementById('pageContainer');
+            const overlayRect = sigOverlay.getBoundingClientRect();
+            const pageRect = pageContainer.getBoundingClientRect();
+            document.getElementById('posX').value = Math.max(0, overlayRect.left - pageRect.left);
+            document.getElementById('posY').value = Math.max(0, overlayRect.top - pageRect.top);
+            document.getElementById('posW').value = sigOverlay.offsetWidth;
+            document.getElementById('posH').value = sigOverlay.offsetHeight;
+            document.getElementById('renderScale').value = currentScale;
+
+            if(submitButton) { submitButton.disabled = true; submitButton.textContent = 'Applying signature…'; }
+            try {
+                const response = await fetch('/api/process', { method: 'POST', body: new FormData(this) });
+                const data = await response.json();
+                if(!response.ok || !data.success) throw new Error(data.error || 'Unable to sign this file.');
+
+                const downloadResponse = await fetch('/download/' + encodeURIComponent(data.filename));
+                if(!downloadResponse.ok) throw new Error('Signed file was created, but the download could not be started.');
+                const blob = await downloadResponse.blob();
+                const url = window.URL.createObjectURL(blob);
+                const anchor = document.createElement('a');
+                anchor.href = url;
+                anchor.download = data.filename;
+                document.body.appendChild(anchor);
+                anchor.click();
+                anchor.remove();
+                window.setTimeout(() => window.URL.revokeObjectURL(url), 1500);
+            } catch(error) {
+                alert(error.message || 'Signing failed. Please try again.');
+            } finally {
+                if(submitButton) { submitButton.disabled = false; submitButton.textContent = 'Apply & Download Signed File'; }
+            }
+        });
+    
+})();
+</script>
+
+{% endif %}
+{% if tool_type == 'watermark' %}
+
+    
+
+    <div class="tool-container">
+        <h2><i class="fa-solid fa-stamp"></i> Full Page Tiled Watermark</h2>
+        <p style="color: #64748b; margin-bottom: 25px;">PDF, JPG ya PNG ke poore background mein terhe (diagonal) pattern mein watermark lagayein.</p>
+
+        <form class="fv-special-form" id="watermarkForm" action="/api/process" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="tool_type" value="watermark">
+            
+            <div class="form-group">
+                <label>1. Upload Document / Image (PDF, JPG, PNG):</label>
+                <input type="file" name="file" accept=".pdf, .jpg, .jpeg, .png" required>
+            </div>
+
+            <div class="form-group">
+                <label>2. Watermark Text (Jo poore page par repeat karna hai):</label>
+                <input type="text" name="watermark_text" placeholder="For example: CONFIDENTIAL or Your Name" value="CONFIDENTIAL" required>
+            </div>
+
+            <div class="form-group">
+                <label>3. Darkness / Opacity (10% se 100%): <span id="rangeVal" class="range-value">30%</span></label>
+                <input type="range" name="brightness" min="10" max="100" value="30" id="brightnessRange">
+            </div>
+
+            <button type="submit" class="submit-btn">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Apply Tiled Watermark & Download
+            </button>
+            <button type="button" class="reset-btn" onclick="window.location.reload();">
+                <i class="fa-solid fa-arrow-rotate-left"></i> Reset 
+            </button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('brightnessRange').addEventListener('input', function() {
+            document.getElementById('rangeVal').innerText = this.value + '%';
+        });
+    </script>
+
+{% endif %}
+{% if tool_type == 'unlock_pdf' %}
+    <div class="tool-container" style="max-width:550px">
+        <h2><i class="fa-solid fa-lock-open"></i> Unlock PDF Document</h2>
+        <p style="color:#64748b;margin-bottom:25px">Upload a protected PDF and enter its password to unlock it.</p>
+        <form class="fv-special-form" action="/api/process" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="tool_type" value="unlock_pdf">
+            <div class="form-group">
+                <label for="unlockFile">1. Select Protected PDF File:</label>
+                <input id="unlockFile" class="fv-option-input" type="file" name="file" accept=".pdf,application/pdf" required>
+            </div>
+            <div class="form-group">
+                <label for="unlockCurrentPassword">2. Enter PDF Password:</label>
+                <input id="unlockCurrentPassword" class="fv-option-input" type="password" name="password" placeholder="Enter current password" required>
+            </div>
+            <button type="submit" class="submit-btn"><i class="fa-solid fa-key"></i> Unlock &amp; Download PDF</button>
+            <button type="reset" class="reset-btn"><i class="fa-solid fa-arrow-rotate-left"></i> Reset</button>
+        </form>
+    </div>
+{% endif %}
+    </main>
+
+
+{% if tool_type == 'rotate_pdf' %}<script>
+(() => {
+
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        let currentAngle = 0;
+        const fileInput = document.getElementById('fileInput');
+        const previewImg = document.getElementById('previewImg');
+        const pdfCanvas = document.getElementById('pdfCanvas');
+        const placeholder = document.getElementById('placeholder');
+        const pdfCtx = pdfCanvas.getContext('2d');
+
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+
+            placeholder.style.display = 'none';
+            currentAngle = 0;
+            updateRotation();
+
+            if(file.type.startsWith('image/')) {
+                pdfCanvas.style.display = 'none';
+                previewImg.style.display = 'block';
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    previewImg.src = evt.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else if(file.type === 'application/pdf') {
+                previewImg.style.display = 'none';
+                pdfCanvas.style.display = 'block';
+                const reader = new FileReader();
+                reader.onload = function() {
+                    pdfjsLib.getDocument(new Uint8Array(this.result)).promise.then(pdf => {
+                        pdf.getPage(1).then(page => {
+                            const viewport = page.getViewport({ scale: 0.8 });
+                            pdfCanvas.height = viewport.height;
+                            pdfCanvas.width = viewport.width;
+                            page.render({ canvasContext: pdfCtx, viewport: viewport });
+                        });
+                    });
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        });
+
+        function rotatePreview(step) {
+            currentAngle = (currentAngle + step) % 360;
+            if(currentAngle < 0) currentAngle += 360;
+            updateRotation();
+        }
+
+        function updateRotation() {
+            previewImg.style.transform = `rotate(${currentAngle}deg)`;
+            pdfCanvas.style.transform = `rotate(${currentAngle}deg)`;
+            document.getElementById('finalAngle').value = currentAngle;
+        }
+    
+
+})();
+</script>{% endif %}
+
+{% if tool_type == 'watermark' %}<script>
+
+        document.getElementById('brightnessRange').addEventListener('input', function() {
+            document.getElementById('rangeVal').innerText = this.value + '%';
+        });
+    
+</script>{% endif %}
+<script>
+// Handle dedicated tools whose backend returns a downloadable file rather than JSON.
+document.querySelectorAll('.fv-special-form').forEach(form => form.addEventListener('submit', async event => {
+  event.preventDefault();
+  const button=form.querySelector('[type="submit"]');
+  if(button) button.disabled=true;
+  try {
+    const response=await fetch('/api/process',{method:'POST',body:new FormData(form)});
+    const contentType=response.headers.get('content-type') || '';
+    if (!response.ok) {
+      let msg=contentType.includes('application/json') ? (await response.json()).error : await response.text();
+      throw new Error(msg.replace(/<[^>]*>/g,' ').slice(0,300));
+    }
+    if(contentType.includes('application/json')) {
+      const data=await response.json();
+      if(!data.success) throw new Error(data.error || 'Processing failed');
+      window.location.href='/download/'+encodeURIComponent(data.filename);
+    } else {
+      const blob=await response.blob();
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url;
+      const cd=response.headers.get('content-disposition') || '';
+      const match=cd.match(/filename\*?=(?:UTF-8''|")?([^";]+)/i);
+      a.download=match ? decodeURIComponent(match[1].replace(/^"|"$/g,'')) : 'filevellum-result';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),10000);
+    }
+  } catch(error) { alert(error.message || 'Unable to process file'); }
+  finally {if(button) button.disabled=false;}
+}));
+</script>
+    {% else %}
+    <div class="tool-container {% if tool_type.startswith('text_') %}fv-text-tool-page{% elif tool_type.startswith('dev_') %}fv-dev-tool-page{% elif tool_type.startswith('extra_') %}fv-extra-tool-page{% endif %}">
+        <div class="tool-header">
+            <h2><i class="fa-solid fa-wand-magic-sparkles"></i> {{ tool_name }}</h2>
+            <p>{% if tool_type.startswith('text_') %}Enter, edit and process text directly in your browser.{% else %}Upload your files below and process them securely.{% endif %}</p>
+        </div>
+
+        {% if tool_type.startswith('text_') %}
+        <style>
+          .fv-text-workspace{margin-top:18px;text-align:left}
+          .fv-text-workspace textarea,.fv-text-workspace input,.fv-text-workspace select{width:100%;box-sizing:border-box;padding:12px;border:1.5px solid #cbd5e1;border-radius:9px;font:inherit;background:#fff;margin:7px 0 14px}
+          .fv-text-workspace textarea{min-height:180px;resize:vertical;line-height:1.55}
+          .fv-text-workspace label{display:block;font-weight:700;margin:12px 0 4px;color:#222}
+          .fv-text-actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+          .fv-text-actions button{border:2px solid #111;border-radius:8px;background:#111;color:#ffeb18;padding:10px 16px;font-weight:700;cursor:pointer}
+          .fv-text-actions button.secondary{background:#fff;color:#111}
+          .fv-text-result{background:#fffbe0;border:1.5px solid #111;border-radius:10px;padding:14px;margin-top:14px;white-space:pre-wrap;overflow-wrap:anywhere;min-height:48px}
+          .fv-text-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:10px;margin:12px 0}
+          .fv-text-stat{border:1px solid #ddd;border-radius:9px;padding:12px;background:#fafafa}
+          .fv-text-stat strong{display:block;font-size:22px}
+          .fv-text-note{font-size:13px;color:#555;line-height:1.5}
+          .fv-text-workspace .fv-text-output{min-height:140px}
+          .fv-text-workspace .fv-text-error{color:#b91c1c;font-weight:700}
+          .fv-text-tool-page #uploadSection,.fv-text-tool-page #actionBtn,.fv-text-tool-page .reset-btn{display:none!important}
+          @media(max-width:600px){.fv-text-actions button{flex:1 1 130px}}
+        </style>
+        <div id="textUtilityRoot" class="fv-text-workspace" data-tool="{{ tool_type }}"></div>
+        {% endif %}
+
+
+
+        {% if tool_type.startswith('dev_') %}
+        <style>
+          .fv-dev-workspace{margin-top:18px;text-align:left}
+          .fv-dev-workspace textarea,.fv-dev-workspace input:not([type=color]):not([type=checkbox]):not([type=range]),.fv-dev-workspace select{width:100%;box-sizing:border-box;padding:12px;border:1.5px solid #cbd5e1;border-radius:9px;font:inherit;background:#fff;margin:7px 0 14px}
+          .fv-dev-workspace textarea{min-height:190px;resize:vertical;line-height:1.55;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+          .fv-dev-workspace label{display:block;font-weight:700;margin:12px 0 4px;color:#222}
+          .fv-dev-actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+          .fv-dev-actions button{border:2px solid #111;border-radius:8px;background:#111;color:#ffeb18;padding:10px 16px;font-weight:700;cursor:pointer}
+          .fv-dev-actions button.secondary{background:#fff;color:#111}
+          .fv-dev-result{background:#fffbe0;border:1.5px solid #111;border-radius:10px;padding:14px;margin-top:14px;white-space:pre-wrap;overflow-wrap:anywhere;min-height:48px}
+          .fv-dev-note{font-size:13px;color:#555;line-height:1.5}
+          .fv-dev-workspace .dev-inline{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+          .fv-dev-workspace input[type=color]{width:72px;height:44px;border:1px solid #bbb;border-radius:8px;padding:3px;background:#fff}
+          .fv-dev-workspace input[type=checkbox]{width:auto;margin-right:6px}
+          .fv-dev-tool-page #uploadSection,.fv-dev-tool-page #actionBtn,.fv-dev-tool-page .reset-btn{display:none!important}
+          @media(max-width:600px){.fv-dev-actions button{flex:1 1 130px}}
+        </style>
+        <div id="developerToolRoot" class="fv-dev-workspace" data-tool="{{ tool_type }}"></div>
+
+        {% if tool_type.startswith('extra_') %}
+        <style>
+          .fv-extra-workspace{margin-top:18px;text-align:left}
+          .fv-extra-workspace label{display:block;font-weight:700;margin:12px 0 5px;color:#222}
+          .fv-extra-workspace input:not([type=color]):not([type=checkbox]),.fv-extra-workspace textarea,.fv-extra-workspace select{width:100%;box-sizing:border-box;padding:12px;border:1.5px solid #cbd5e1;border-radius:9px;font:inherit;background:#fff;margin:6px 0 12px}
+          .fv-extra-workspace textarea{min-height:145px;resize:vertical;line-height:1.5}
+          .fv-extra-actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+          .fv-extra-actions button{border:2px solid #111;border-radius:8px;background:#111;color:#ffeb18;padding:10px 16px;font-weight:700;cursor:pointer}
+          .fv-extra-actions button.secondary{background:#fff;color:#111}
+          .fv-extra-result{background:#fffbe0;border:1.5px solid #111;border-radius:10px;padding:14px;margin-top:14px;white-space:pre-wrap;overflow-wrap:anywhere;min-height:44px}
+          .fv-extra-note{font-size:13px;color:#555;line-height:1.5}
+          .fv-extra-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+          .fv-extra-workspace table{border-collapse:collapse;width:100%;background:white;font-size:13px}
+          .fv-extra-workspace th,.fv-extra-workspace td{border:1px solid #ddd;padding:8px;text-align:left}
+          .fv-extra-workspace th{background:#fff2a3}
+          .fv-extra-tool-page #uploadSection,.fv-extra-tool-page #actionBtn,.fv-extra-tool-page .reset-btn{display:none!important}
+          .fv-extra-preview{border:1px solid #ddd;background:white;border-radius:10px;padding:15px;min-height:90px;overflow:auto}
+          .fv-extra-preview iframe{width:100%;height:280px;border:0;background:white}
+          @media(max-width:600px){.fv-extra-actions button{flex:1 1 130px}}
+        </style>
+        <p class="fv-extra-note">{{ tool_name }} — use the controls below to complete your task.</p>
+        <div id="extraUtilityRoot" class="fv-extra-workspace" data-tool="{{ tool_type }}"></div>
+        {% endif %}
+
+        {% endif %}
+
+        {% if tool_type in ['qr_code_generator','qr_code_with_logo','qr_code_color_customizer','wifi_qr_code_generator','vcard_qr_code_generator','barcode_generator'] %}
+        <div class="fv-qr-fields" style="margin:0 0 18px">
+          {% if tool_type in ['qr_code_generator','qr_code_with_logo','qr_code_color_customizer'] %}
+          <label class="fv-option-label" for="qr_text">Text or URL</label><textarea id="qr_text" class="fv-option-input" rows="4" required placeholder="Enter text, website URL, or any information"></textarea>
+          {% elif tool_type == 'wifi_qr_code_generator' %}
+          <label class="fv-option-label" for="qr_ssid">Wi-Fi network name (SSID)</label><input id="qr_ssid" class="fv-option-input" required placeholder="Your Wi-Fi name">
+          <label class="fv-option-label" for="qr_wifi_password">Wi-Fi password</label><input id="qr_wifi_password" class="fv-option-input" type="text" placeholder="Wi-Fi password">
+          <label class="fv-option-label" for="qr_security">Security</label><select id="qr_security" class="fv-option-input"><option value="WPA">WPA/WPA2</option><option value="WEP">WEP</option><option value="nopass">No password</option></select>
+          {% elif tool_type == 'vcard_qr_code_generator' %}
+          <label class="fv-option-label" for="qr_contact_name">Contact name</label><input id="qr_contact_name" class="fv-option-input" placeholder="Full name">
+          <label class="fv-option-label" for="qr_contact_phone">Phone</label><input id="qr_contact_phone" class="fv-option-input" type="tel" placeholder="Phone number">
+          <label class="fv-option-label" for="qr_contact_email">Email</label><input id="qr_contact_email" class="fv-option-input" type="email" placeholder="Email address">
+          <label class="fv-option-label" for="qr_contact_org">Organization</label><input id="qr_contact_org" class="fv-option-input" placeholder="Company / organization">
+          {% elif tool_type == 'barcode_generator' %}
+          <label class="fv-option-label" for="qr_barcode_value">Value to encode</label><input id="qr_barcode_value" class="fv-option-input" required placeholder="Enter numbers or text">
+          <label class="fv-option-label" for="qr_barcode_format">Barcode format</label><select id="qr_barcode_format" class="fv-option-input"><option value="code128">Code 128</option><option value="code39">Code 39</option><option value="ean13">EAN-13</option><option value="ean8">EAN-8</option><option value="upc">UPC-A</option><option value="isbn13">ISBN-13</option></select>
+          {% endif %}
+          {% if tool_type == 'qr_code_color_customizer' %}
+          <label class="fv-option-label" for="qr_qr_color">QR color</label><input id="qr_qr_color" class="fv-option-input" type="color" value="#111111">
+          <label class="fv-option-label" for="qr_background_color">Background color</label><input id="qr_background_color" class="fv-option-input" type="color" value="#ffffff">
+          {% endif %}
+        </div>
+        {% endif %}
+        {% if tool_type in ['image_dpi_checker','image_aspect_ratio_calculator','image_exif_viewer','image_dimension_checker','image_histogram','image_color_picker','image_transparency_checker','image_format_detector','image_quality_analyzer','image_comparison_tool'] %}
+        <style>
+          .fv-inspection-options{margin:0 0 16px;text-align:left}
+          .fv-inspection-options label{display:block;font-weight:700;margin:10px 0 5px}
+          .fv-inspection-options input{box-sizing:border-box;max-width:100%;padding:10px;border:1.5px solid #bbb;border-radius:8px}
+          .fv-inspection-result{display:none;margin:18px 0;padding:16px;border:2px solid #111;border-radius:12px;background:#fffbe0;text-align:left;overflow-wrap:anywhere}
+          .fv-inspection-result table{width:100%;border-collapse:collapse}
+          .fv-inspection-result td{padding:8px;border-bottom:1px solid #e4dcae;vertical-align:top}
+          .fv-inspection-result td:first-child{font-weight:700;width:38%}
+          .fv-inspection-result pre{white-space:pre-wrap;overflow-wrap:anywhere;margin:4px 0;font:12px/1.5 ui-monospace,Consolas,monospace}
+        </style>
+        <div class="fv-inspection-options">
+          {% if tool_type == 'image_color_picker' %}
+          <p style="font-size:13px;color:#555">Enter a pixel coordinate to sample its color. Coordinates start at the image's top-left corner (0, 0).</p>
+          <label for="inspectionPixelX">X coordinate</label><input id="inspectionPixelX" type="number" min="0" value="0">
+          <label for="inspectionPixelY">Y coordinate</label><input id="inspectionPixelY" type="number" min="0" value="0">
+          {% elif tool_type == 'image_comparison_tool' %}
+          <label for="inspectionSecondImage">Second image to compare</label><input id="inspectionSecondImage" type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.bmp,.gif,.tif,.tiff">
+          <p style="font-size:13px;color:#555">Select two images: the first in the main upload area and the second here.</p>
+          {% elif tool_type == 'image_histogram' %}
+          <p style="font-size:13px;color:#555">Generates 16 brightness-frequency bins for each RGB color channel.</p>
+          {% elif tool_type == 'image_quality_analyzer' %}
+          <p style="font-size:13px;color:#555">Measures brightness, contrast, entropy and edge detail. These are objective indicators, not a guaranteed quality grade.</p>
+          {% endif %}
+        </div>
+        <div id="imageInspectionResult" class="fv-inspection-result" aria-live="polite"></div>
+        {% endif %}
+
+        <div id="uploadSection">
+            {% if tool_type == 'webpage_to_pdf' %}
+            <label for="webpageUrl" style="display:block;font-weight:700;margin-bottom:10px">Public webpage URL</label>
+            <input id="webpageUrl" type="url" placeholder="https://example.com" style="width:100%;padding:15px;border:2px solid #111;border-radius:10px;margin-bottom:18px;box-sizing:border-box" oninput="document.getElementById('actionBtn').style.display=this.value.trim()?'block':'none'">
+            {% elif tool_type != 'base64_to_image' and tool_type not in ['qr_code_generator','wifi_qr_code_generator','vcard_qr_code_generator','barcode_generator','qr_code_with_logo','qr_code_color_customizer'] %}
+            <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <p id="fileNameText">Click here to select file(s)</p>
+                <input type="file" id="fileInput" style="display: none;" {% if tool_type in ['docx_to_txt','txt_to_docx','docx_to_html','html_to_docx','csv_to_excel','excel_to_csv','json_to_csv','csv_to_json','xml_to_json','json_to_xml','rtf_to_docx','docx_to_rtf','odt_to_docx','docx_to_odt'] %}accept=".docx,.txt,.html,.htm,.csv,.xlsx,.xls,.json,.xml,.rtf,.odt"{% elif tool_type in ['qr_code_scanner','barcode_scanner'] %}accept="image/*,.jpg,.jpeg,.png,.webp,.bmp,.gif,.tif,.tiff"{% elif tool_type in ['jpg_to_png','png_to_jpg','images_to_webp','webp_to_jpg','webp_to_png','png_to_svg','heic_to_jpg','image_to_base64','gif_to_jpg','avif_to_jpg','jpg_to_avif','webp_to_avif','avif_to_png','image_to_ico','ico_to_png','favicon_generator','bmp_to_png','gif_maker','image_compressor','image_resizer','image_cropper','image_rotator','image_flipper','image_watermark','passport_photo_maker','blur_image','sharpen_image','image_filters','image_to_text','image_metadata_viewer','remove_image_metadata','image_background_changer','image_border_maker','image_collage_maker','image_upscaler','image_color_palette','remove_bg','image_dpi_checker','image_aspect_ratio_calculator','image_exif_viewer','image_dimension_checker','image_histogram','image_color_picker','image_transparency_checker','image_format_detector','image_quality_analyzer','image_comparison_tool'] %}accept="image/*,.jpg,.jpeg,.png,.webp,.bmp,.gif,.ico,.avif,.heic,.heif,.tif,.tiff"{% elif tool_type in ['create_zip_archive','extract_zip_archive','compress_files_to_zip','extract_multiple_files','merge_zip_archives','split_large_files_into_parts','password_protect_zip','extract_password_protected_zip','create_tar_archive','extract_tar_archive','create_tar_gz_archive','extract_tar_gz_archive','zip_file_information','zip_to_tar','tar_to_zip','compressor','extract_zip'] %}accept=".zip,.tar,.gz,.tgz,.tar.gz,.txt,.pdf,.doc,.docx,.jpg,.jpeg,.png,.webp,.csv,.json,.bin"{% elif tool_type == 'svg_to_png' %}accept=".svg,image/svg+xml"{% elif tool_type in ['grayscale_pdf','ocr_pdf','make_pdf_searchable','optimize_pdf_images','pdf_file_size_analyzer','pdf_page_size_checker','pdf_font_inspector','pdf_color_converter','pdf_image_extractor'] %}accept=".pdf,application/pdf"{% endif %} {% if tool_type in ['merge', 'organize_pdf', 'jpg_to_pdf', 'png_to_pdf', 'compressor', 'images_to_pdf', 'tiff_to_pdf', 'insert_pdf_pages', 'replace_pdf_pages','gif_maker','images_to_webp','image_collage_maker','create_zip_archive','compress_files_to_zip','merge_zip_archives','password_protect_zip','create_tar_archive','create_tar_gz_archive','compressor'] %}multiple{% endif %} onchange="handleFileSelect(this)">
+            </div>
+
+            {% endif %}
+
+{% if tool_type in ['password_protect_zip','extract_password_protected_zip'] %}
+<label class="fv-option-label">ZIP password</label><input id="es_password" class="fv-option-input" type="password" autocomplete="new-password" required placeholder="Enter archive password">
+{% endif %}
+{% if tool_type == 'split_large_files_into_parts' %}
+<label class="fv-option-label">Part size (MB)</label><input id="es_part_size_mb" class="fv-option-input" type="number" min="1" max="100" value="10">
+<p style="font-size:13px">The output is a ZIP containing numbered parts. Keep every part to reassemble the original file.</p>
+{% endif %}
+{% if tool_type in ['extract_zip_archive','extract_multiple_files','extract_tar_archive','extract_tar_gz_archive','zip_file_information','zip_to_tar','tar_to_zip'] %}
+<p style="font-size:13px">Upload one valid archive. Extracted contents are returned as a downloadable ZIP.</p>
+{% endif %}
+{% if tool_type in ['remove_pdf_pages','extract_pdf_pages','duplicate_pdf_pages','reorder_pdf_pages'] %}
+<label class="fv-option-label">Page numbers / order (example: 1,3-5)</label>
+<input id="organizePageRange" class="fv-option-input" placeholder="1,3-5" type="text">
+{% endif %}
+{% if tool_type in ['insert_pdf_pages','replace_pdf_pages'] %}
+<label class="fv-option-label">Position (1-based page number)</label><input id="organizePosition" class="fv-option-input" type="number" min="1" value="1">
+<p style="margin:8px 0 14px;font-size:13px">Select TWO PDFs together: original PDF first, insert/replace PDF second.</p>
+{% endif %}
+{% if tool_type == 'unlock_pdf' %}<label class="fv-option-label">PDF Password</label><input id="unlockPassword" class="fv-option-input" type="password" placeholder="Enter PDF password">{% endif %}
+{% if tool_type == 'crop_pdf' %}<label class="fv-option-label">Crop margin (points)</label><input id="organizeMargin" class="fv-option-input" type="number" min="0" value="20">{% endif %}
+{% if tool_type == 'resize_pdf_pages' %}<label class="fv-option-label">Page width × height (points; A4 ≈ 595 × 842)</label><div style="display:flex;gap:12px"><input id="organizeWidth" class="fv-option-input" type="number" value="595"><input id="organizeHeight" class="fv-option-input" type="number" value="842"></div>{% endif %}
+
+
+{% if tool_type in ['grayscale_pdf','ocr_pdf','make_pdf_searchable','optimize_pdf_images','pdf_file_size_analyzer','pdf_page_size_checker','pdf_font_inspector','pdf_color_converter','pdf_image_extractor'] %}
+<div class="fv-edit-options" style="margin:12px 0 18px">
+{% if tool_type in ['ocr_pdf','make_pdf_searchable'] %}
+<label class="fv-option-label">OCR language (Tesseract language code)</label><input id="es_ocr_language" class="fv-option-input" value="eng" placeholder="eng">
+<label class="fv-option-label">OCR resolution (DPI)</label><input id="es_dpi" class="fv-option-input" type="number" min="150" max="300" value="200">
+<p style="font-size:13px">OCR requires Tesseract OCR to be installed on the server. English is selected by default.</p>
+{% elif tool_type == 'optimize_pdf_images' %}
+<label class="fv-option-label">JPEG image quality (35–95)</label><input id="es_quality" class="fv-option-input" type="number" min="35" max="95" value="65">
+<label class="fv-option-label">Target image DPI (72–300)</label><input id="es_dpi" class="fv-option-input" type="number" min="72" max="300" value="150">
+{% elif tool_type in ['grayscale_pdf','pdf_color_converter'] %}
+<label class="fv-option-label">Output color mode</label><select id="es_color_mode" class="fv-option-input"><option value="grayscale">Grayscale</option><option value="rgb">RGB</option></select>
+<label class="fv-option-label">Output resolution (DPI)</label><input id="es_dpi" class="fv-option-input" type="number" min="72" max="200" value="150">
+{% else %}
+<p style="font-size:13px">Upload a PDF to generate the requested analysis report or extracted files.</p>
+{% endif %}
+</div>
+{% endif %}
+{% if tool_type in ['edit_pdf_metadata','remove_pdf_metadata','add_pdf_header_footer','add_text_to_pdf','add_image_to_pdf','redact_pdf','pdf_form_filler','pdf_form_creator','flatten_pdf','compare_pdf_files','pdf_repair','pdf_password_checker','pdf_permissions_viewer','pdf_attachment_extractor'] %}
+<div class="fv-edit-options" style="margin:12px 0 18px">
+{% if tool_type == 'edit_pdf_metadata' %}
+{% for field in ['title','author','subject','keywords','creator'] %}<label class="fv-option-label">{{field|title}}</label><input class="fv-option-input" id="es_{{field}}" placeholder="{{field|title}}">{% endfor %}
+{% endif %}
+{% if tool_type == 'add_pdf_header_footer' %}
+<label class="fv-option-label">Header (use {page} for page number)</label><input id="es_header" class="fv-option-input" placeholder="Document title">
+<label class="fv-option-label">Footer</label><input id="es_footer" class="fv-option-input" placeholder="Page {page}">
+{% endif %}
+{% if tool_type in ['add_text_to_pdf','redact_pdf'] %}
+<label class="fv-option-label">{{ 'Exact text to permanently redact' if tool_type == 'redact_pdf' else 'Text to add' }}</label><textarea id="es_text" class="fv-option-input" rows="3" placeholder="Enter text" style="resize:vertical"></textarea>
+{% endif %}
+{% if tool_type == 'add_text_to_pdf' %}
+<label class="fv-option-label">Page number</label><input id="es_page" class="fv-option-input" type="number" min="1" value="1">
+<label class="fv-option-label">X / Y position (points)</label><input id="es_x" class="fv-option-input" type="number" value="40"><input id="es_y" class="fv-option-input" type="number" value="60">
+{% endif %}
+{% if tool_type == 'add_image_to_pdf' %}
+<label class="fv-option-label">Image to place on first page</label><input type="file" id="es_overlay_image" class="fv-option-input" accept=".png,.jpg,.jpeg">
+{% endif %}
+{% if tool_type in ['pdf_form_filler','pdf_form_creator'] %}
+<label class="fv-option-label">PDF field name</label><input id="es_field_name" class="fv-option-input" placeholder="Your_Name">
+{% endif %}
+{% if tool_type == 'pdf_form_filler' %}
+<label class="fv-option-label">Field value</label><input id="es_field_value" class="fv-option-input" placeholder="Value">
+{% endif %}
+{% if tool_type == 'compare_pdf_files' %}
+<label class="fv-option-label">Second PDF to compare</label><input type="file" id="es_second_pdf" class="fv-option-input" accept=".pdf">
+{% endif %}
+{% if tool_type in ['pdf_password_checker','pdf_permissions_viewer'] %}<p style="font-size:13px">The result will download as a JSON report.</p>{% endif %}
+{% if tool_type == 'flatten_pdf' %}<p style="font-size:13px">Flattening creates image-only pages; selectable text will be lost.</p>{% endif %}
+{% if tool_type == 'pdf_repair' %}<p style="font-size:13px">Attempts to rebuild readable PDF structure. Severely damaged files may not be recoverable.</p>{% endif %}
+{% if tool_type == 'redact_pdf' %}<p style="font-size:13px">Redacts matching searchable text, not text embedded only in scans.</p>{% endif %}
+</div>
+{% endif %}
+
+
+{% if tool_type in ['image_compressor','image_resizer','image_cropper','image_rotator','image_flipper','image_watermark','passport_photo_maker','blur_image','image_filters','image_to_text','image_background_changer','image_border_maker','image_collage_maker','image_upscaler'] %}
+<div class="fv-edit-options" style="margin:12px 0 18px">
+{% if tool_type == 'image_compressor' %}
+<label class="fv-option-label">JPEG quality (20–95)</label><input class="fv-option-input" data-image-option="quality" type="number" min="20" max="95" value="75">
+{% elif tool_type == 'image_resizer' %}
+<label class="fv-option-label">Width (px)</label><input class="fv-option-input" data-image-option="width" type="number" min="1" max="12000" placeholder="Required">
+<label class="fv-option-label">Height (px)</label><input class="fv-option-input" data-image-option="height" type="number" min="1" max="12000" placeholder="Required">
+{% elif tool_type == 'image_cropper' %}
+<label class="fv-option-label">Crop X / Y (px)</label><div style="display:flex;gap:10px"><input class="fv-option-input" data-image-option="x" type="number" min="0" value="0"><input class="fv-option-input" data-image-option="y" type="number" min="0" value="0"></div>
+<label class="fv-option-label">Crop width / height (px)</label><div style="display:flex;gap:10px"><input class="fv-option-input" data-image-option="width" type="number" min="1" placeholder="Width"><input class="fv-option-input" data-image-option="height" type="number" min="1" placeholder="Height"></div>
+{% elif tool_type == 'image_rotator' %}
+<label class="fv-option-label">Rotation angle</label><select class="fv-option-input" data-image-option="angle"><option value="90">90° clockwise</option><option value="180">180°</option><option value="270">270° clockwise</option></select>
+{% elif tool_type == 'image_flipper' %}
+<label class="fv-option-label">Flip direction</label><select class="fv-option-input" data-image-option="direction"><option value="horizontal">Horizontal</option><option value="vertical">Vertical</option></select>
+{% elif tool_type == 'image_watermark' %}
+<label class="fv-option-label">Watermark text</label><input class="fv-option-input" data-image-option="text" type="text" maxlength="80" value="FileVellum">
+{% elif tool_type == 'passport_photo_maker' %}
+<label class="fv-option-label">Output width × height (px)</label><div style="display:flex;gap:10px"><input class="fv-option-input" data-image-option="width" type="number" value="413"><input class="fv-option-input" data-image-option="height" type="number" value="531"></div>
+{% elif tool_type == 'blur_image' %}
+<label class="fv-option-label">Blur radius (1–30)</label><input class="fv-option-input" data-image-option="radius" type="number" min="1" max="30" value="3">
+{% elif tool_type == 'image_filters' %}
+<label class="fv-option-label">Filter</label><select class="fv-option-input" data-image-option="filter"><option value="grayscale">Grayscale</option><option value="sepia">Sepia</option><option value="invert">Invert</option><option value="bright">Brighten</option><option value="contrast">Contrast</option></select>
+{% elif tool_type == 'image_to_text' %}
+<label class="fv-option-label">OCR language code</label><input class="fv-option-input" data-image-option="language" type="text" value="eng" placeholder="eng">
+<p style="font-size:13px">OCR also requires the Tesseract engine installed on the server.</p>
+{% elif tool_type in ['image_background_changer','image_border_maker'] %}
+<label class="fv-option-label">Color</label><input class="fv-option-input" data-image-option="color" type="color" value="#ffeb18">
+{% if tool_type == 'image_border_maker' %}<label class="fv-option-label">Border size (px)</label><input class="fv-option-input" data-image-option="size" type="number" min="1" max="300" value="20">{% endif %}
+{% elif tool_type == 'image_upscaler' %}
+<label class="fv-option-label">Upscale factor</label><select class="fv-option-input" data-image-option="scale"><option value="2">2×</option><option value="3">3×</option><option value="4">4×</option></select>
+{% elif tool_type == 'image_collage_maker' %}<p style="font-size:13px">Select at least two images. They will be arranged into a collage.</p>{% endif %}
+</div>
+{% endif %}
+
+{% if tool_type == 'base64_to_image' %}
+<label class="fv-option-label">Base64 image data</label>
+<textarea id="base64Data" class="fv-option-input" rows="7" placeholder="Paste Base64 data or a data:image/...;base64,... string" oninput="document.getElementById('actionBtn').style.display=this.value.trim()?'block':'none'"></textarea>
+{% endif %}
+{% if tool_type in ['jpg_to_png','png_to_jpg','images_to_webp','webp_to_jpg','webp_to_png','svg_to_png','png_to_svg','heic_to_jpg','image_to_base64','gif_to_jpg','gif_maker','avif_to_jpg','jpg_to_avif','webp_to_avif','avif_to_png','image_to_ico','ico_to_png','favicon_generator','bmp_to_png','base64_to_image'] %}
+<p style="font-size:13px;color:#555;margin:8px 0 14px">{% if tool_type == 'png_to_svg' %}Creates an SVG file containing your original PNG image (it does not trace the image into editable vector paths).{% elif tool_type == 'gif_maker' %}Select at least two images. They will be combined into an animated GIF in upload order.{% elif tool_type == 'images_to_webp' %}You can select multiple images; multiple outputs are provided together in a ZIP file.{% elif tool_type in ['heic_to_jpg','avif_to_jpg','jpg_to_avif','webp_to_avif','avif_to_png'] %}This conversion requires the relevant image codec to be installed on the server.{% else %}Upload an image in the source format shown in the tool name.{% endif %}</p>
+{% endif %}
+
+            <div id="visualSelectorContainer" style="display: none; margin-bottom: 20px; text-align: left;">
+                <label style="font-weight: 600; font-size: 14px; color: #334155;" id="instructionLabel">
+                    Click pages in the exact order you want them processed:
+                </label>
+                <div id="pagesGrid" class="pages-grid"></div>
+            </div>
+
+            <button class="submit-btn" id="actionBtn" style="display: {% if tool_type in ['qr_code_generator','wifi_qr_code_generator','vcard_qr_code_generator','barcode_generator','qr_code_with_logo','qr_code_color_customizer','image_dpi_checker','image_aspect_ratio_calculator','image_exif_viewer','image_dimension_checker','image_histogram','image_color_picker','image_transparency_checker','image_format_detector','image_quality_analyzer','image_comparison_tool'] %}block{% else %}none{% endif %};" onclick="startProcess()">
+                <span class="btn-label"><i class="fa-solid fa-gear"></i> {% if tool_type in ['qr_code_scanner','barcode_scanner'] %}Scan Code{% else %}Process & Download File{% endif %}</span>
+                <span id="spinner" style="display: none;"><i class="fa-solid fa-spinner fa-spin"></i> Processing...</span>
+            </button>
+
+            <button type="button" class="reset-btn" onclick="window.location.reload();">
+                <i class="fa-solid fa-arrow-rotate-left"></i> Reset / Upload New File
+            </button>
+        </div>
+
+        <div id="qrScanResult" style="display:none;margin-top:18px;padding:16px;border:2px solid #111;border-radius:12px;background:#fffbe0;word-break:break-word"></div>
+        <div id="downloadSection" style="display: none; text-align: center;">
+            <div style="font-size: 45px; color: #16a34a; margin-bottom: 12px;"><i class="fa-solid fa-circle-check"></i></div>
+            <h3 style="color: #0f172a; margin-bottom: 12px;">File Processed Successfully!</h3>
+            <a id="downloadLink" class="submit-btn" style="display: inline-block; text-decoration: none; margin-top: 10px;" href="#">
+                <i class="fa-solid fa-download"></i> Download Processed File
+            </a>
+            <button type="button" class="reset-btn" onclick="window.location.reload();" style="margin-top: 15px;">
+                <i class="fa-solid fa-arrow-rotate-left"></i> Process Another File
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function showToast(message, isError = true) {
+            const toast = document.getElementById("toast");
+            toast.style.borderLeftColor = isError ? "#ef4444" : "#10b981";
+            toast.innerHTML = `
+                <span style="font-size: 18px;">${isError ? '⚠️' : '✅'}</span>
+                <div style="flex-grow: 1;">
+                    <div style="font-weight: 600; margin-bottom: 2px;">${isError ? 'Error' : 'Success'}</div>
+                    <div style="color: #94a3b8; font-size: 12px;">${message}</div>
+                </div>
+            `;
+            toast.classList.add("show");
+            if (window.toastTimeout) clearTimeout(window.toastTimeout);
+            window.toastTimeout = setTimeout(() => { toast.classList.remove("show"); }, 4000);
+        }
+
+        let selectedFiles = null;
+        const toolType = "{{ tool_type }}";
+        let selectedPageNumbers = [];
+
+        async function handleFileSelect(input) {
+            if (input.files && input.files.length > 0) {
+                selectedFiles = input.files;
+                document.getElementById('fileNameText').textContent = `${input.files.length} file(s) selected`;
+                document.getElementById('actionBtn').style.display = 'block';
+
+                if (toolType === 'split') {
+                    await renderPdfThumbnails(input.files[0]);
+                } else if (toolType === 'organize_pdf') {
+                    await renderMultiplePdfThumbnails(input.files);
+                }
+            }
+        }
+
+        async function renderMultiplePdfThumbnails(files) {
+            const grid = document.getElementById('pagesGrid');
+            grid.innerHTML = '';
+            selectedPageNumbers = [];
+            document.getElementById('visualSelectorContainer').style.display = 'block';
+
+            let globalPageCounter = 1;
+            for (let f = 0; f < files.length; f++) {
+                const arrayBuffer = await files[f].arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const viewport = page.getViewport({ scale: 0.25 });
+
+                    const div = document.createElement('div');
+                    div.className = 'page-thumb';
+                    div.dataset.page = globalPageCounter;
+
+                    const badge = document.createElement('div');
+                    badge.className = 'page-badge';
+                    badge.textContent = `F${f+1}:P${i}`;
+                    div.appendChild(badge);
+
+                    const canvas = document.createElement('canvas');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    div.appendChild(canvas);
+
+                    await page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
+
+                    const currentPageNum = globalPageCounter;
+                    div.onclick = function() {
+                        const existingIdx = selectedPageNumbers.indexOf(currentPageNum);
+                        if (existingIdx > -1) {
+                            selectedPageNumbers.splice(existingIdx, 1);
+                            div.classList.remove('selected');
+                            updateOrderBadges();
+                        } else {
+                            selectedPageNumbers.push(currentPageNum);
+                            div.classList.add('selected');
+                            updateOrderBadges();
+                        }
+                    };
+                    grid.appendChild(div);
+                    globalPageCounter++;
+                }
+            }
+        }
+
+        async function renderPdfThumbnails(file) {
+            const grid = document.getElementById('pagesGrid');
+            grid.innerHTML = '';
+            selectedPageNumbers = [];
+            document.getElementById('visualSelectorContainer').style.display = 'block';
+
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const viewport = page.getViewport({ scale: 0.25 });
+
+                const div = document.createElement('div');
+                div.className = 'page-thumb';
+                div.dataset.page = i;
+
+                const badge = document.createElement('div');
+                badge.className = 'page-badge';
+                badge.textContent = `P ${i}`;
+                div.appendChild(badge);
+
+                const canvas = document.createElement('canvas');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                div.appendChild(canvas);
+
+                await page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
+
+                div.onclick = function() {
+                    const existingIdx = selectedPageNumbers.indexOf(i);
+                    if (existingIdx > -1) {
+                        selectedPageNumbers.splice(existingIdx, 1);
+                        div.classList.remove('selected');
+                        updateOrderBadges();
+                    } else {
+                        selectedPageNumbers.push(i);
+                        div.classList.add('selected');
+                        updateOrderBadges();
+                    }
+                };
+                grid.appendChild(div);
+            }
+        }
+
+        function updateOrderBadges() {
+            document.querySelectorAll('.page-thumb').forEach(thumb => {
+                const pageNum = parseInt(thumb.dataset.page);
+                const orderBadge = thumb.querySelector('.order-badge');
+                if (orderBadge) orderBadge.remove();
+
+                const pos = selectedPageNumbers.indexOf(pageNum);
+                if (pos > -1) {
+                    const newBadge = document.createElement('div');
+                    newBadge.className = 'order-badge';
+                    newBadge.textContent = pos + 1;
+                    thumb.appendChild(newBadge);
+                }
+            });
+        }
+
+        async function startProcess() {
+            if (!['webpage_to_pdf','base64_to_image','qr_code_generator','wifi_qr_code_generator','vcard_qr_code_generator','barcode_generator','qr_code_with_logo','qr_code_color_customizer'].includes(toolType) && (!selectedFiles || selectedFiles.length === 0)) {
+                showToast('Please select file(s) first!', true);
+                return;
+            }
+
+            if ((toolType === 'split' || toolType === 'organize_pdf') && selectedPageNumbers.length === 0) {
+                showToast('Please select at least one page!', true);
+                return;
+            }
+
+            document.querySelector('.btn-label').style.display = 'none';
+            document.getElementById('spinner').style.display = 'inline-block';
+
+            let formData = new FormData();
+            if (toolType === 'webpage_to_pdf') { formData.append('webpage_url', document.getElementById('webpageUrl').value.trim()); }
+            else if (toolType === 'base64_to_image') { formData.append('base64_data', document.getElementById('base64Data').value.trim()); }
+            else for (let i = 0; i < selectedFiles.length; i++) { formData.append('file', selectedFiles[i]); }
+            formData.append('tool_type', toolType);
+            if (toolType === 'image_comparison_tool') {
+                const secondImage = document.getElementById('inspectionSecondImage');
+                if (secondImage && secondImage.files && secondImage.files[0]) formData.append('second_image', secondImage.files[0]);
+            }
+            if (toolType === 'image_color_picker') {
+                formData.append('pixel_x', document.getElementById('inspectionPixelX')?.value || '0');
+                formData.append('pixel_y', document.getElementById('inspectionPixelY')?.value || '0');
+            }
+            const qrFields = {text:'qr_text', ssid:'qr_ssid', wifi_password:'qr_wifi_password', security:'qr_security', contact_name:'qr_contact_name', contact_phone:'qr_contact_phone', contact_email:'qr_contact_email', contact_org:'qr_contact_org', barcode_value:'qr_barcode_value', barcode_format:'qr_barcode_format', qr_color:'qr_qr_color', background_color:'qr_background_color'};
+            Object.entries(qrFields).forEach(([key,id]) => { const el=document.getElementById(id); if(el) formData.append(key,el.value); });
+            document.querySelectorAll('[id^="es_"]').forEach(el => {
+                const key = el.id.slice(3);
+                if (el.type === 'file') {
+                    if (el.files && el.files.length) formData.append(key, el.files[0]);
+                } else {
+                    formData.append(key, el.value);
+                }
+            });
+            document.querySelectorAll('[data-image-option]').forEach(el => {
+                if (el.value !== '') formData.append(el.dataset.imageOption, el.value);
+            });
+            if (toolType === 'unlock_pdf') formData.append('password', document.getElementById('unlockPassword').value);
+            const opt=(id)=>document.getElementById(id)?.value;
+            if(opt('organizePageRange')!==undefined) formData.append('page_range',opt('organizePageRange'));
+            if(opt('organizePosition')!==undefined) formData.append('position',opt('organizePosition'));
+            if(opt('organizeMargin')!==undefined) formData.append('margin',opt('organizeMargin'));
+            if(opt('organizeWidth')!==undefined) formData.append('width',opt('organizeWidth'));
+            if(opt('organizeHeight')!==undefined) formData.append('height',opt('organizeHeight'));
+            if (toolType === 'split' || toolType === 'organize_pdf') {
+                formData.append('split_range', selectedPageNumbers.join(','));
+            }
+
+            try {
+                let response = await fetch('/api/process', { method: 'POST', body: formData });
+                let data = await response.json().catch(() => ({}));
+                
+                if (response.ok && data.success) {
+                    if (data.inspection) {
+                        const box = document.getElementById('imageInspectionResult');
+                        const esc = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+                        const rows = Object.entries(data.report || {}).map(([key,value]) => `<tr><td>${esc(key)}</td><td>${typeof value === 'object' ? `<pre>${esc(JSON.stringify(value,null,2))}</pre>` : esc(value)}</td></tr>`).join('');
+                        box.innerHTML = `<h3 style="margin:0 0 12px">Inspection Results</h3><table>${rows}</table>`;
+                        box.style.display = 'block';
+                        showToast('Image inspection completed!', false);
+                        document.querySelector('.btn-label').style.display = 'inline'; document.getElementById('spinner').style.display = 'none';
+                        return;
+                    }
+                    if (toolType === 'qr_code_scanner' || toolType === 'barcode_scanner') {
+                        const resultBox=document.getElementById('qrScanResult');
+                        resultBox.innerHTML='<h3 style="margin:0 0 10px">Detected code</h3>'+data.result.map(item=>'<p><strong>'+String(item.type).replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]))+'</strong><br>'+String(item.value).replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]))+'</p>').join('');
+                        resultBox.style.display='block'; showToast('Code scanned successfully!',false);
+                        document.querySelector('.btn-label').style.display='inline'; document.getElementById('spinner').style.display='none'; return;
+                    }
+                    showToast('File successfully processed!', false);
+                    
+                    const downloadResponse = await fetch('/download/' + encodeURIComponent(data.filename));
+                    if (!downloadResponse.ok) {
+                        throw new Error('The processed file could not be downloaded. Please try again.');
+                    }
+                    const downloadBlob = await downloadResponse.blob();
+                    const downloadUrl = window.URL.createObjectURL(downloadBlob);
+                    const downloadAnchor = document.createElement('a');
+                    downloadAnchor.href = downloadUrl;
+                    downloadAnchor.download = data.filename;
+                    document.body.appendChild(downloadAnchor);
+                    downloadAnchor.click();
+                    downloadAnchor.remove();
+                    window.setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 1000);
+
+                    setTimeout(() => {
+                        document.getElementById('uploadSection').style.display = 'none';
+                        document.getElementById('downloadSection').style.display = 'block';
+                        document.getElementById('downloadLink').href = `/download/${encodeURIComponent(data.filename)}`;
+                        document.querySelector('.btn-label').style.display = 'inline';
+                        document.getElementById('spinner').style.display = 'none';
+                    }, 1000);
+                } else {
+                    document.querySelector('.btn-label').style.display = 'inline';
+                    document.getElementById('spinner').style.display = 'none';
+                    showToast(data.error || 'Processing failed', true);
+                }
+            } catch (err) {
+                document.querySelector('.btn-label').style.display = 'inline';
+                document.getElementById('spinner').style.display = 'none';
+                showToast('An error occurred, please try again!', true);
+            }
+        }
+    </script>
+    {% endif %}
+    <footer class="yellowbee-footer">
+<div class="footer-inner"><a aria-label="FileVellum home" class="footer-brand" href="#"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="FileVellum logo"></a><div class="footer-right"><a class="footer-email" href="mailto:filevellum@gmail.com">FILEVELLUM@GMAIL.COM</a><div class="social-icons">
+<a aria-label="Instagram" class="social-icon-btn" href="https://www.instagram.com/yashrajsinghgujjar/" rel="noopener noreferrer" target="_blank" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+<a aria-label="YouTube" class="social-icon-btn" href="https://www.youtube.com/"  rel="noopener noreferrer" target="_blank" title="YouTube"><i class="fa-brands fa-youtube"></i></a>
+<a aria-label="LinkedIn" class="social-icon-btn" href="https://www.linkedin.com/in/yashrajsinghgujjar/" rel="noopener noreferrer" target="_blank" title="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+<a aria-label="Facebook" class="social-icon-btn" href="https://www.facebook.com/yashrajsinghgujjar" rel="noopener noreferrer" target="_blank" title="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+<a aria-label="GitHub" class="social-icon-btn" href="https://github.com/yashrajsinghgujjar" rel="noopener noreferrer" target="_blank" title="GitHub"><i class="fa-brands fa-github"></i></a>
+<a aria-label="Portfolio Website" class="social-icon-btn" href="https://yashrajsinghgujjar.vercel.app/" rel="noopener noreferrer" target="_blank"  title="Portfolio Website"><i class="fa-solid fa-globe"></i></a></div></div></div>
+<div class="footer-bottom-row">
+<span>© 2026 FILEVELLUM. ALL RIGHTS RESERVED.</span>
+<span>Your Files, Endless Possibilities.</span>
+</div>
+</footer>
+<script>
+(function(){
+ const root=document.getElementById('textUtilityRoot'); if(!root) return;
+ const type=root.dataset.tool;
+ const esc=(s)=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const field=(id,label,placeholder='',rows=8)=>`<label for="${id}">${label}</label><textarea id="${id}" placeholder="${placeholder}" rows="${rows}"></textarea>`;
+ const input=(id,label,value='')=>`<label for="${id}">${label}</label><input id="${id}" value="${value}">`;
+ const select=(id,label,opts)=>`<label for="${id}">${label}</label><select id="${id}">${opts.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('')}</select>`;
+ const actions=(buttons)=>`<div class="fv-text-actions">${buttons.map(b=>`<button type="button" id="${b[0]}" class="${b[2]?'secondary':''}">${b[1]}</button>`).join('')}</div>`;
+ const result=(id='textResult')=>`<div id="${id}" class="fv-text-result" aria-live="polite">Your result will appear here.</div>`;
+ const copy=(id)=>{const el=document.getElementById(id);const text=el?.value ?? el?.textContent ?? '';if(!text.trim())return; navigator.clipboard?.writeText(text).then(()=>notice('Copied to clipboard.')).catch(()=>notice('Copy is not available in this browser.'));};
+ const notice=(msg)=>{let n=document.getElementById('textNotice');if(!n){n=document.createElement('p');n.id='textNotice';n.className='fv-text-note';root.appendChild(n)}n.textContent=msg;};
+ const download=(name,text)=>{const a=document.createElement('a');const u=URL.createObjectURL(new Blob([text],{type:'text/plain;charset=utf-8'}));a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000)};
+ const setResult=(id,text)=>{const el=document.getElementById(id);if(el)el.textContent=text};
+ const get=(id)=>document.getElementById(id)?.value ?? '';
+ const bind=(id,fn,event='click')=>document.getElementById(id)?.addEventListener(event,fn);
+ const set=(html)=>{root.innerHTML=html};
+ const words=(s)=>s.trim()?s.trim().split(/\s+/u).length:0;
+ const safeStats=(s)=>`<div class="fv-text-stats"><div class="fv-text-stat"><strong>${words(s)}</strong>Words</div><div class="fv-text-stat"><strong>${s.length}</strong>Characters</div><div class="fv-text-stat"><strong>${s.replace(/\s/g,'').length}</strong>No spaces</div><div class="fv-text-stat"><strong>${s? s.split(/\r?\n/).length:0}</strong>Lines</div></div>`;
+ switch(type){
+ case 'text_word_counter': case 'text_character_counter': case 'text_line_counter':
+   set(field('sourceText','Enter or paste your text','Start typing or paste text here...')+'<div id="liveStats"></div>'+result('liveSummary')+actions([['copyText','Copy text',true],['downloadText','Download .txt',true]]));
+   const update=()=>{const s=get('sourceText');const stat=`${words(s)} words · ${s.length} characters · ${s.replace(/\s/g,'').length} characters without spaces · ${s?s.split(/\r?\n/).length:0} lines`;document.getElementById('liveStats').innerHTML=safeStats(s);setResult('liveSummary',stat)};
+   bind('sourceText',update,'input');bind('copyText',()=>copy('sourceText'));bind('downloadText',()=>download('filevellum-text.txt',get('sourceText')));update();break;
+ case 'text_text_case_converter':
+   set(field('sourceText','Text to convert','Enter text here...')+select('caseMode','Choose case',[['upper','UPPERCASE'],['lower','lowercase'],['title','Title Case'],['sentence','Sentence case'],['capitalize','Capitalize Each Word'],['alternating','aLtErNaTiNg cAsE']])+actions([['convertText','Convert'],['copyText','Copy result',true],['downloadText','Download .txt',true]])+field('caseOutput','Converted text','',6));
+   bind('convertText',()=>{let s=get('sourceText'),m=get('caseMode');let out=m==='upper'?s.toUpperCase():m==='lower'?s.toLowerCase():m==='title'?s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()):m==='sentence'?s.toLowerCase().replace(/(^|[.!?]\s+)([a-z])/g,(_,a,b)=>a+b.toUpperCase()):m==='capitalize'?s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()):[...s].map((c,i)=>i%2?c.toLowerCase():c.toUpperCase()).join('');document.getElementById('caseOutput').value=out});bind('copyText',()=>copy('caseOutput'));bind('downloadText',()=>download('converted-text.txt',get('caseOutput')));break;
+ case 'text_remove_duplicate_lines':
+   set(field('sourceText','Text to clean','Paste lines here...')+'<label><input type="checkbox" id="keepCase" checked style="width:auto;margin-right:8px">Treat uppercase and lowercase as different</label>'+actions([['runTool','Remove duplicate lines'],['copyText','Copy result',true],['downloadText','Download .txt',true]])+field('textOutput','Cleaned text','',8));
+   bind('runTool',()=>{const lines=get('sourceText').split(/\r?\n/),seen=new Set(),keep=document.getElementById('keepCase').checked,out=lines.filter(line=>{const key=keep?line:line.toLocaleLowerCase();if(seen.has(key))return false;seen.add(key);return true});document.getElementById('textOutput').value=out.join('\n');notice(`Removed ${lines.length-out.length} duplicate line(s).`)});bind('copyText',()=>copy('textOutput'));bind('downloadText',()=>download('unique-lines.txt',get('textOutput')));break;
+ case 'text_text_sorter':
+   set(field('sourceText','Lines to sort','Enter one item per line...')+select('sortMode','Sort order',[['asc','A to Z / Small to large'],['desc','Z to A / Large to small'],['numeric','Numeric (ascending)'],['numeric_desc','Numeric (descending)']])+actions([['runTool','Sort lines'],['copyText','Copy result',true],['downloadText','Download .txt',true]])+field('textOutput','Sorted text','',8));
+   bind('runTool',()=>{let a=get('sourceText').split(/\r?\n/);const m=get('sortMode');a.sort((x,y)=>m.startsWith('numeric')?Number(x)-Number(y):x.localeCompare(y,undefined,{numeric:true,sensitivity:'base'}));if(m==='desc'||m==='numeric_desc')a.reverse();document.getElementById('textOutput').value=a.join('\n')});bind('copyText',()=>copy('textOutput'));bind('downloadText',()=>download('sorted-text.txt',get('textOutput')));break;
+ case 'text_find_replace_text':
+   set(field('sourceText','Original text','Paste text here...')+input('findValue','Find','')+input('replaceValue','Replace with','')+'<label><input type="checkbox" id="matchCase" style="width:auto;margin-right:8px">Match case</label>'+actions([['runTool','Replace all'],['copyText','Copy result',true],['downloadText','Download .txt',true]])+field('textOutput','Updated text','',8));
+   bind('runTool',()=>{const s=get('sourceText'),f=get('findValue'),r=get('replaceValue');if(!f){notice('Enter the text you want to find.');return}const escRe=f.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');const re=new RegExp(escRe,document.getElementById('matchCase').checked?'g':'gi');const out=s.replace(re,()=>r);document.getElementById('textOutput').value=out;notice(`Replaced ${[...s.matchAll(re)].length} occurrence(s).`)});bind('copyText',()=>copy('textOutput'));bind('downloadText',()=>download('replaced-text.txt',get('textOutput')));break;
+ case 'text_text_to_speech':
+   set(field('sourceText','Text to speak','Type or paste the text you want to hear...')+select('speechLang','Language',[['en-US','English (US)'],['en-GB','English (UK)'],['hi-IN','Hindi'],['es-ES','Spanish'],['fr-FR','French']])+`<label for="speechRate">Speaking speed</label><input id="speechRate" type="range" min="0.5" max="2" step="0.1" value="1">`+actions([['speakText','Speak'],['pauseSpeech','Pause',true],['resumeSpeech','Resume',true],['stopSpeech','Stop',true]] )+'<p class="fv-text-note">Uses your browser’s built-in speech synthesis. Available voices depend on your device.</p>');
+   bind('speakText',()=>{if(!('speechSynthesis'in window)){notice('Text-to-speech is not supported in this browser.');return}const s=get('sourceText').trim();if(!s){notice('Enter text first.');return}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(s);u.lang=get('speechLang');u.rate=Number(get('speechRate'));speechSynthesis.speak(u)});bind('pauseSpeech',()=>speechSynthesis.pause());bind('resumeSpeech',()=>speechSynthesis.resume());bind('stopSpeech',()=>speechSynthesis.cancel());break;
+ case 'text_speech_to_text':
+   set(select('speechLang','Recognition language',[['en-US','English (US)'],['en-GB','English (UK)'],['hi-IN','Hindi'],['es-ES','Spanish'],['fr-FR','French']])+actions([['startSpeech','Start listening'],['stopSpeech','Stop listening',true],['copyText','Copy transcript',true]])+field('speechTranscript','Recognized text','Your recognized speech will appear here...',10)+'<p class="fv-text-note">Speech recognition is handled by the browser and may require internet access and microphone permission. Browser support varies.</p>');
+   let rec=null;bind('startSpeech',()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){notice('Speech recognition is not supported in this browser. Try a supported version of Chrome or Edge.');return}if(rec)rec.stop();rec=new SR();rec.lang=get('speechLang');rec.continuous=true;rec.interimResults=true;rec.onresult=e=>{let final='';for(let i=0;i<e.results.length;i++)final+=e.results[i][0].transcript+(e.results[i].isFinal?' ':'');document.getElementById('speechTranscript').value=final};rec.onerror=e=>notice('Speech recognition error: '+e.error);rec.onend=()=>notice('Listening stopped.');rec.start();notice('Listening… speak into your microphone.');});bind('stopSpeech',()=>{if(rec)rec.stop()});bind('copyText',()=>copy('speechTranscript'));break;
+ case 'text_text_diff_checker':
+   set(field('oldText','Original text','Paste the original version...',7)+field('newText','New text','Paste the updated version...',7)+actions([['compareText','Compare text'],['copyDiff','Copy comparison',true]])+result('diffResult'));
+   bind('compareText',()=>{const a=get('oldText').split(/\r?\n/),b=get('newText').split(/\r?\n/);let out=[];const max=Math.max(a.length,b.length);for(let i=0;i<max;i++){if(a[i]===b[i])out.push('  '+(a[i]??''));else{if(a[i]!==undefined)out.push('- '+a[i]);if(b[i]!==undefined)out.push('+ '+b[i])}}setResult('diffResult',out.join('\n')||'No differences found.')});bind('copyDiff',()=>copy('diffResult'));break;
+ case 'text_remove_extra_spaces':
+   set(field('sourceText','Text to clean','Paste text with extra spaces...')+'<label><input type="checkbox" id="removeBlank" style="width:auto;margin-right:8px">Remove blank lines</label>'+actions([['runTool','Clean text'],['copyText','Copy result',true],['downloadText','Download .txt',true]])+field('textOutput','Cleaned text','',8));
+   bind('runTool',()=>{let lines=get('sourceText').split(/\r?\n/).map(x=>x.replace(/[ \t]+/g,' ').trim());if(document.getElementById('removeBlank').checked)lines=lines.filter(Boolean);document.getElementById('textOutput').value=lines.join('\n')});bind('copyText',()=>copy('textOutput'));bind('downloadText',()=>download('cleaned-text.txt',get('textOutput')));break;
+ case 'text_text_reverser':
+   set(field('sourceText','Text to reverse','Enter text here...')+select('reverseMode','Reverse mode',[['chars','Characters'],['words','Word order'],['lines','Line order']])+actions([['runTool','Reverse text'],['copyText','Copy result',true],['downloadText','Download .txt',true]])+field('textOutput','Reversed text','',8));
+   bind('runTool',()=>{const s=get('sourceText'),m=get('reverseMode');const out=m==='chars'?[...s].reverse().join(''):m==='words'?s.trim().split(/\s+/).filter(Boolean).reverse().join(' '):s.split(/\r?\n/).reverse().join('\n');document.getElementById('textOutput').value=out});bind('copyText',()=>copy('textOutput'));bind('downloadText',()=>download('reversed-text.txt',get('textOutput')));break;
+ case 'text_lorem_ipsum_generator':
+   set(input('loremCount','Number of paragraphs','3')+select('loremLength','Paragraph length',[['short','Short'],['medium','Medium'],['long','Long']])+actions([['runTool','Generate Lorem Ipsum'],['copyText','Copy result',true],['downloadText','Download .txt',true]])+field('textOutput','Generated placeholder text','',10));
+   bind('runTool',()=>{const count=Math.max(1,Math.min(30,parseInt(get('loremCount'),10)||1)),n={short:35,medium:65,long:100}[get('loremLength')];const bank='lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi aliquip ex ea commodo consequat duis aute irure dolor reprehenderit voluptate velit esse cillum fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt culpa qui officia deserunt mollit anim id est laborum'.split(' ');let paras=[];for(let p=0;p<count;p++){let a=[];for(let i=0;i<n;i++)a.push(bank[(i*7+p*13)%bank.length]);a[0]=a[0][0].toUpperCase()+a[0].slice(1);paras.push(a.join(' ')+'.')}document.getElementById('textOutput').value=paras.join('\n\n')});bind('copyText',()=>copy('textOutput'));bind('downloadText',()=>download('lorem-ipsum.txt',get('textOutput')));break;
+ case 'text_text_to_binary':
+   set(field('sourceText','Text to convert','Enter text here...')+actions([['runTool','Convert to binary'],['copyText','Copy binary',true],['downloadText','Download .txt',true]])+field('textOutput','Binary output','',8)+'<p class="fv-text-note">Converts UTF-8 bytes, so Hindi and other Unicode characters are supported.</p>');
+   bind('runTool',()=>{const bytes=new TextEncoder().encode(get('sourceText'));document.getElementById('textOutput').value=Array.from(bytes,b=>b.toString(2).padStart(8,'0')).join(' ')});bind('copyText',()=>copy('textOutput'));bind('downloadText',()=>download('text-binary.txt',get('textOutput')));break;
+ case 'text_binary_to_text':
+   set(field('sourceText','Binary input','Enter 8-bit binary groups separated by spaces...',8)+actions([['runTool','Convert to text'],['copyText','Copy text',true],['downloadText','Download .txt',true]])+field('textOutput','Decoded text','',8)+'<p class="fv-text-note">Enter binary bytes as 8-bit groups. Spaces and line breaks between groups are accepted.</p>');
+   bind('runTool',()=>{const raw=get('sourceText').trim();const groups=raw.split(/\s+/).filter(Boolean);if(!groups.length||groups.some(x=>!/^[01]{8}$/.test(x))){notice('Invalid binary. Use groups of exactly 8 bits (for example: 01001000 01101001).');return}try{const bytes=new Uint8Array(groups.map(x=>parseInt(x,2)));document.getElementById('textOutput').value=new TextDecoder('utf-8',{fatal:true}).decode(bytes);notice('Binary decoded successfully.')}catch(e){notice('The binary bytes are not valid UTF-8 text.')}});bind('copyText',()=>copy('textOutput'));bind('downloadText',()=>download('decoded-text.txt',get('textOutput')));break;
+ default: set('<p>This Text Utility is not available.</p>');
+ }
+})();
+</script>
+<script id="fv-developer-tools-runtime">
+(function(){
+ const root=document.getElementById('developerToolRoot'); if(!root) return;
+ const type=root.dataset.tool;
+ const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const field=(id,label,placeholder='',rows=10)=>`<label for="${id}">${label}</label><textarea id="${id}" placeholder="${placeholder}" rows="${rows}"></textarea>`;
+ const input=(id,label,value='')=>`<label for="${id}">${label}</label><input id="${id}" value="${value}">`;
+ const select=(id,label,opts)=>`<label for="${id}">${label}</label><select id="${id}">${opts.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('')}</select>`;
+ const actions=bs=>`<div class="fv-dev-actions">${bs.map(b=>`<button type="button" id="${b[0]}" class="${b[2]?'secondary':''}">${b[1]}</button>`).join('')}</div>`;
+ const result=(id='devResult')=>`<div id="${id}" class="fv-dev-result" aria-live="polite">Your result will appear here.</div>`;
+ const get=id=>document.getElementById(id)?.value??'';
+ const bind=(id,fn,event='click')=>document.getElementById(id)?.addEventListener(event,fn);
+ const notice=msg=>{let n=document.getElementById('devNotice');if(!n){n=document.createElement('p');n.id='devNotice';n.className='fv-dev-note';root.appendChild(n)}n.textContent=msg};
+ const setResult=(id,s)=>{const e=document.getElementById(id);if(e)e.textContent=s};
+ const copy=id=>{const e=document.getElementById(id);const s=e?.value??e?.textContent??'';if(!s)return;navigator.clipboard?.writeText(s).then(()=>notice('Copied to clipboard.')).catch(()=>notice('Clipboard access is unavailable.'))};
+ const download=(name,s)=>{const a=document.createElement('a'),u=URL.createObjectURL(new Blob([s],{type:'text/plain;charset=utf-8'}));a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000)};
+ const set=html=>root.innerHTML=html;
+ const io=(inputId='sourceText',outputId='devOutput',label='Input',outLabel='Output',placeholder='Paste your code or text here...')=>field(inputId,label,placeholder,12)+actions([['runTool','Run tool'],['copyOutput','Copy result',true],['downloadOutput','Download result',true]])+field(outputId,outLabel,'Result will appear here...',12);
+ const prettyMarkup=s=>{let x=s.replace(/>\s*</g,'>\n<').trim();let depth=0,out=[];for(const line of x.split(/\n/)){let t=line.trim();if(!t)continue;if(/^<\//.test(t))depth=Math.max(0,depth-1);out.push('  '.repeat(depth)+t);if(/^<[^!?/][^>]*>$/.test(t)&&!(/\/\s*>$/.test(t))&&!/^<(area|base|br|col|embed|hr|img|input|link|meta|param|source|track|wbr)\b/i.test(t)&&!new RegExp('</'+(t.match(/^<([\w:-]+)/)||[])[1]+'>','i').test(t))depth++;}return out.join('\n')};
+ const compactMarkup=s=>s.replace(/<!--[\s\S]*?-->/g,'').replace(/>\s+</g,'><').replace(/[\t\r\n]+/g,' ').replace(/\s{2,}/g,' ').trim();
+ const formatCss=s=>{let x=s.replace(/\s*([{}:;,])\s*/g,'$1').replace(/;/g,';\n').replace(/{/g,' {\n').replace(/}/g,'\n}\n');let depth=0;return x.split('\n').map(line=>{let t=line.trim();if(!t)return '';if(t.startsWith('}'))depth=Math.max(0,depth-1);let o='  '.repeat(depth)+t;if(t.endsWith('{'))depth++;return o}).filter(Boolean).join('\n')};
+ const minCss=s=>s.replace(/\/\*[\s\S]*?\*\//g,'').replace(/\s*([{}:;,])\s*/g,'$1').replace(/;}/g,'}').trim();
+ const formatCode=s=>{let out='',indent=0,quote='',escape=false,lineStart=true;for(let i=0;i<s.length;i++){let c=s[i],n=s[i+1];if(lineStart&&c!=='\n'&&c!=='\r'&&c!==' '&&c!=='\t'){out+='  '.repeat(indent);lineStart=false;}out+=c;if(quote){if(escape)escape=false;else if(c==='\\')escape=true;else if(c===quote)quote='';continue;}if(c==='"'||c==="'"||c==='`'){quote=c;continue;}if(c==='{'){indent++;out+='\n';lineStart=true;}else if(c==='}'){indent=Math.max(0,indent-1);if(n!==';'&&n!==','&&n!==')') {out+='\n';lineStart=true;}}else if(c===';' ){out+='\n';lineStart=true;}else if(c===','){out+=' ';}}return out.split('\n').map(x=>x.trimEnd()).filter((x,i,a)=>x.trim()|| (i>0&&i<a.length-1)).join('\n').trim()};
+ const minJs=s=>{let out='',quote='',escape=false,inLine=false,inBlock=false,space=false;for(let i=0;i<s.length;i++){let c=s[i],n=s[i+1];if(inLine){if(c==='\n'){inLine=false;space=true;}continue;}if(inBlock){if(c==='*'&&n==='/'){inBlock=false;i++;space=true;}continue;}if(quote){out+=c;if(escape)escape=false;else if(c==='\\')escape=true;else if(c===quote)quote='';continue;}if(c==='"'||c==="'"||c==='`'){if(space&&/[\w$]/.test(out.slice(-1)))out+=' ';space=false;quote=c;out+=c;continue;}if(c==='/'&&n==='/'){inLine=true;i++;continue;}if(c==='/'&&n==='*'){inBlock=true;i++;continue;}if(/\s/.test(c)){space=true;continue;}if(space&&/[\w$]/.test(c)&&/[\w$]/.test(out.slice(-1)))out+=' ';space=false;out+=c;}return out.trim()};
+ const toBase64=s=>btoa(String.fromCharCode(...new TextEncoder().encode(s)));
+ const fromBase64=s=>new TextDecoder('utf-8',{fatal:true}).decode(Uint8Array.from(atob(s.replace(/\s/g,'')),c=>c.charCodeAt(0)));
+ const markdownHtml=s=>{let lines=s.split(/\r?\n/),out=[],inList=false;const inline=x=>esc(x).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/\[(.+?)\]\((https?:\/\/[^\s)]+)\)/g,'<a href="$2">$1</a>');for(const line of lines){let m;if((m=line.match(/^(#{1,6})\s+(.*)$/))){if(inList){out.push('</ul>');inList=false}let n=m[1].length;out.push(`<h${n}>${inline(m[2])}</h${n}>`)}else if(/^\s*[-*+]\s+/.test(line)){if(!inList){out.push('<ul>');inList=true}out.push('<li>'+inline(line.replace(/^\s*[-*+]\s+/,''))+'</li>')}else if(!line.trim()){if(inList){out.push('</ul>');inList=false}}else{if(inList){out.push('</ul>');inList=false}out.push('<p>'+inline(line)+'</p>')}}if(inList)out.push('</ul>');return out.join('\n')};
+ switch(type){
+ case 'dev_json_formatter':case 'dev_json_validator':
+  set(field('sourceText','JSON input','Paste JSON here...')+actions([['runTool',type==='dev_json_formatter'?'Format JSON':'Validate JSON'],['copyOutput','Copy result',true],['downloadOutput','Download JSON',true]])+field('devOutput','Result','',12)+result('devStatus'));
+  bind('runTool',()=>{try{let v=JSON.parse(get('sourceText'));let out=JSON.stringify(v,null,2);document.getElementById('devOutput').value=out;setResult('devStatus','Valid JSON.');}catch(e){document.getElementById('devOutput').value='';setResult('devStatus','Invalid JSON: '+e.message)}});bind('copyOutput',()=>copy('devOutput'));bind('downloadOutput',()=>download('formatted.json',get('devOutput')));break;
+ case 'dev_html_formatter':case 'dev_html_minifier':
+  set(io('sourceText','devOutput','HTML input','Result','Paste HTML here...'));
+  bind('runTool',()=>{let s=get('sourceText');document.getElementById('devOutput').value=type==='dev_html_formatter'?prettyMarkup(s):compactMarkup(s)});bind('copyOutput',()=>copy('devOutput'));bind('downloadOutput',()=>download('html-result.html',get('devOutput')));break;
+ case 'dev_css_formatter':case 'dev_css_minifier':
+  set(io('sourceText','devOutput','CSS input','Result','Paste CSS here...'));
+  bind('runTool',()=>{let s=get('sourceText');document.getElementById('devOutput').value=type==='dev_css_formatter'?formatCss(s):minCss(s)});bind('copyOutput',()=>copy('devOutput'));bind('downloadOutput',()=>download('styles-result.css',get('devOutput')));break;
+ case 'dev_javascript_formatter':case 'dev_javascript_minifier':
+  set(io('sourceText','devOutput','JavaScript input','Result','Paste JavaScript here...')+'<p class="fv-dev-note">The built-in formatter/minifier is lightweight; for production builds, use a full JavaScript parser/minifier.</p>');
+  bind('runTool',()=>{let s=get('sourceText');document.getElementById('devOutput').value=type==='dev_javascript_formatter'?formatCode(s):minJs(s)});bind('copyOutput',()=>copy('devOutput'));bind('downloadOutput',()=>download('javascript-result.js',get('devOutput')));break;
+ case 'dev_url_encoder_decoder':
+  set(field('sourceText','Text or URL','Enter text or URL...')+select('urlMode','Action',[['encode','Encode'],['decode','Decode']])+actions([['runTool','Convert'],['copyOutput','Copy result',true]])+field('devOutput','Result','',8));
+  bind('runTool',()=>{try{document.getElementById('devOutput').value=get('urlMode')==='encode'?encodeURIComponent(get('sourceText')):decodeURIComponent(get('sourceText').replace(/\+/g,' '));notice('Conversion completed.')}catch(e){notice('Invalid encoded URL/text: '+e.message)}});bind('copyOutput',()=>copy('devOutput'));break;
+ case 'dev_markdown_to_html':
+  set(field('sourceText','Markdown input','Use # headings, **bold**, *italic*, lists and links...')+actions([['runTool','Convert to HTML'],['copyOutput','Copy HTML',true],['downloadOutput','Download HTML',true]])+field('devOutput','HTML output','',12));bind('runTool',()=>document.getElementById('devOutput').value=markdownHtml(get('sourceText')));bind('copyOutput',()=>copy('devOutput'));bind('downloadOutput',()=>download('markdown-output.html',get('devOutput')));break;
+ case 'dev_password_generator':
+  set(input('passLength','Password length','20')+`<label><input type="checkbox" id="passUpper" checked> Uppercase letters</label><label><input type="checkbox" id="passLower" checked> Lowercase letters</label><label><input type="checkbox" id="passNumbers" checked> Numbers</label><label><input type="checkbox" id="passSymbols" checked> Symbols</label>`+actions([['runTool','Generate password'],['copyOutput','Copy password',true]])+field('devOutput','Generated password','',3)+'<p class="fv-dev-note">Generated locally using the browser cryptographic random number generator.</p>');
+  bind('runTool',()=>{let chars='';if(document.getElementById('passUpper').checked)chars+='ABCDEFGHIJKLMNOPQRSTUVWXYZ';if(document.getElementById('passLower').checked)chars+='abcdefghijklmnopqrstuvwxyz';if(document.getElementById('passNumbers').checked)chars+='0123456789';if(document.getElementById('passSymbols').checked)chars+='!@#$%^&*()-_=+[]{};:,.?';let len=Math.max(4,Math.min(128,parseInt(get('passLength'),10)||20));if(!chars){notice('Select at least one character set.');return}let bytes=new Uint32Array(len);crypto.getRandomValues(bytes);document.getElementById('devOutput').value=Array.from(bytes,n=>chars[n%chars.length]).join('')});bind('copyOutput',()=>copy('devOutput'));break;
+ case 'dev_color_picker':
+  set(`<label for="colorValue">Choose a color</label><div class="dev-inline"><input id="colorValue" type="color" value="#ffeb18"><input id="hexValue" value="#ffeb18" aria-label="HEX color"></div>`+result('colorDetails')+actions([['copyHex','Copy HEX',true],['copyRgb','Copy RGB',true]]));
+  const updateColor=()=>{let h=get('colorValue').replace('#','');document.getElementById('hexValue').value='#'+h;let n=parseInt(h,16),r=n>>16,g=(n>>8)&255,b=n&255;setResult('colorDetails',`HEX: #${h.toUpperCase()}\nRGB: rgb(${r}, ${g}, ${b})\nHSL: ${(()=>{let R=r/255,G=g/255,B=b/255,max=Math.max(R,G,B),min=Math.min(R,G,B),d=max-min,l=(max+min)/2,hh=0,ss=0;if(d){ss=d/(1-Math.abs(2*l-1));switch(max){case R:hh=((G-B)/d)%6;break;case G:hh=(B-R)/d+2;break;default:hh=(R-G)/d+4}hh*=60;if(hh<0)hh+=360}return `${Math.round(hh)}°, ${Math.round(ss*100)}%, ${Math.round(l*100)}%`})()}`)};
+  bind('colorValue',updateColor,'input');bind('hexValue',()=>{let v=get('hexValue');if(/^#[0-9a-f]{6}$/i.test(v)){document.getElementById('colorValue').value=v;updateColor()}else notice('Enter a valid 6-digit HEX color.')});bind('copyHex',()=>copy('hexValue'));bind('copyRgb',()=>{const t=document.getElementById('colorDetails').textContent.split('\n')[1].replace('RGB: ','');navigator.clipboard?.writeText(t).then(()=>notice('RGB copied.'))});updateColor();break;
+ case 'dev_base64_text_encoder_decoder':
+  set(field('sourceText','Input text / Base64','Enter text or Base64...')+select('baseMode','Action',[['encode','Encode to Base64'],['decode','Decode from Base64']])+actions([['runTool','Convert'],['copyOutput','Copy result',true],['downloadOutput','Download .txt',true]])+field('devOutput','Result','',10));
+  bind('runTool',()=>{try{document.getElementById('devOutput').value=get('baseMode')==='encode'?toBase64(get('sourceText')):fromBase64(get('sourceText'));notice('Conversion completed.')}catch(e){notice('Invalid Base64 or unsupported text encoding.')}});bind('copyOutput',()=>copy('devOutput'));bind('downloadOutput',()=>download('base64-result.txt',get('devOutput')));break;
+ case 'dev_xml_formatter':case 'dev_xml_validator':
+  set(field('sourceText','XML input','Paste XML here...')+actions([['runTool',type==='dev_xml_formatter'?'Format XML':'Validate XML'],['copyOutput','Copy result',true],['downloadOutput','Download XML',true]])+field('devOutput','Result','',12)+result('devStatus'));
+  bind('runTool',()=>{let s=get('sourceText'),doc=new DOMParser().parseFromString(s,'application/xml'),err=doc.querySelector('parsererror');if(err){document.getElementById('devOutput').value='';setResult('devStatus','Invalid XML: '+err.textContent.trim())}else{let out=new XMLSerializer().serializeToString(doc);document.getElementById('devOutput').value=type==='dev_xml_formatter'?prettyMarkup(out):out;setResult('devStatus','Valid XML.')}});bind('copyOutput',()=>copy('devOutput'));bind('downloadOutput',()=>download('formatted.xml',get('devOutput')));break;
+ case 'dev_regex_tester':
+  set(input('regexPattern','Regular expression','\\b\w+\\b')+input('regexFlags','Flags (g, i, m, s)','gi')+field('sourceText','Test text','Enter text to test...')+actions([['runTool','Test regex'],['copyOutput','Copy matches',true]])+result('devOutput'));
+  bind('runTool',()=>{try{let flags=get('regexFlags');if(!flags.includes('g'))flags+='g';let re=new RegExp(get('regexPattern'),flags),s=get('sourceText'),matches=[...s.matchAll(re)];setResult('devOutput',matches.length?matches.map((m,i)=>`${i+1}. ${JSON.stringify(m[0])} — index ${m.index}`).join('\n'):`No matches found.\nValid regular expression.`)}catch(e){setResult('devOutput','Regex error: '+e.message)}});bind('copyOutput',()=>copy('devOutput'));break;
+ case 'dev_jwt_decoder':
+  set(field('sourceText','JWT token','Paste a JSON Web Token (three dot-separated parts)...')+actions([['runTool','Decode JWT'],['copyOutput','Copy decoded data',true]])+field('devOutput','Decoded header and payload','',12)+result('devStatus')+'<p class="fv-dev-note">Decoding only reads the token contents. It does not verify the signature or validate claims.</p>');
+  bind('runTool',()=>{try{let p=get('sourceText').trim().split('.');if(p.length!==3)throw Error('A JWT must contain three dot-separated parts.');let decode=s=>JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(s.length/4)*4,'=')),c=>c.charCodeAt(0))));let out={header:decode(p[0]),payload:decode(p[1])};document.getElementById('devOutput').value=JSON.stringify(out,null,2);setResult('devStatus','JWT structure decoded. Signature not verified.')}catch(e){document.getElementById('devOutput').value='';setResult('devStatus','Could not decode token: '+e.message)}});bind('copyOutput',()=>copy('devOutput'));break;
+ case 'dev_uuid_generator':
+  set(input('uuidCount','Number of UUIDs','5')+actions([['runTool','Generate UUIDs'],['copyOutput','Copy UUIDs',true],['downloadOutput','Download .txt',true]])+field('devOutput','Generated UUIDs','',10));bind('runTool',()=>{let n=Math.max(1,Math.min(1000,parseInt(get('uuidCount'),10)||1));document.getElementById('devOutput').value=Array.from({length:n},()=>crypto.randomUUID()).join('\n')});bind('copyOutput',()=>copy('devOutput'));bind('downloadOutput',()=>download('uuids.txt',get('devOutput')));break;
+ default:set('<p>This Developer Tool is not available.</p>');
+ }
+})();
+</script>
+
+
+<script>
+(function(){
+ const root=document.getElementById('extraUtilityRoot'); if(!root)return;
+ const tool=root.dataset.tool;
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const field=(id,label,type='text',value='',placeholder='')=>`<label for="${id}">${label}</label><input id="${id}" type="${type}" value="${esc(value)}" placeholder="${esc(placeholder)}">`;
+ const area=(id,label,value='',ph='')=>`<label for="${id}">${label}</label><textarea id="${id}" placeholder="${esc(ph)}">${esc(value)}</textarea>`;
+ const select=(id,label,opts)=>`<label for="${id}">${label}</label><select id="${id}">${opts.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('')}</select>`;
+ const btn=(label,id='runExtra')=>`<div class="fv-extra-actions"><button type="button" id="${id}">${label}</button><button type="button" class="secondary" id="clearExtra">Reset</button></div>`;
+ const result='<div id="extraResult" class="fv-extra-result" aria-live="polite">Your result will appear here.</div>';
+ const titles={
+ extra_font_file_converter:'Convert supported TTF, OTF, WOFF and WOFF2 font files.',
+ extra_font_previewer:'Load a font file and preview your own sample text.',
+ extra_color_contrast_checker:'Check WCAG contrast ratio between foreground and background colors.',
+ extra_unit_converter:'Convert length, weight, temperature, area and data units.',
+ extra_date_calculator:'Find the days between dates or add/subtract days from a date.',
+ extra_timestamp_converter:'Convert Unix timestamps and readable dates.',
+ extra_url_parser:'Inspect the parts of a URL.',
+ extra_html_entity_encoder_decoder:'Encode or decode HTML entities.',
+ extra_css_gradient_generator:'Create a CSS linear gradient and copy its code.',
+ extra_meta_tag_generator:'Generate common SEO and social meta tags.',
+ extra_robots_txt_generator:'Create a robots.txt file for your website.',
+ extra_sitemap_generator:'Create a basic XML sitemap from a list of page URLs.',
+ extra_open_graph_preview:'Preview a social sharing card using Open Graph details.',
+ extra_markdown_editor:'Write Markdown and preview a safe basic HTML rendering.',
+ extra_html_live_preview:'Edit HTML and preview it in a sandboxed frame.',
+ extra_text_file_merger:'Combine multiple text files into one downloadable file.',
+ extra_csv_viewer:'Load a CSV file and view it as a table.',
+ extra_json_viewer:'Format and validate JSON.',
+ extra_xml_viewer:'Format and validate XML.',
+ extra_html_table_generator:'Build an HTML table from CSV-style rows.'
+ };
+ let markup='';
+ switch(tool){
+ case 'extra_font_file_converter':
+ markup=field('fontFile','Choose font file','file')+select('fontTarget','Convert to',[['ttf','TTF'],['otf','OTF'],['woff','WOFF'],['woff2','WOFF2']])+`<p class="fv-extra-note">Conversion uses FontTools on your server. Install: <code>pip install fonttools brotli</code></p>`+btn('Convert & Download')+result; break;
+ case 'extra_font_previewer':
+ markup=field('fontPreviewFile','Choose font file','file')+field('fontSample','Preview text','text','The quick brown fox 0123456789')+`<div id="fontPreview" class="fv-extra-preview" style="font-size:30px">The quick brown fox 0123456789</div>`+result; break;
+ case 'extra_color_contrast_checker':
+ markup=`<div class="fv-extra-grid">${field('fgColor','Text color','color','#111111')}${field('bgColor','Background color','color','#ffeb18')}</div>`+btn('Check Contrast')+result;break;
+ case 'extra_unit_converter':
+ markup=select('unitKind','Measurement',[['length','Length'],['weight','Weight'],['temperature','Temperature'],['area','Area'],['data','Digital storage']])+field('unitValue','Value','number','1')+`<div class="fv-extra-grid">${select('unitFrom','From',[])}${select('unitTo','To',[])}</div>`+btn('Convert')+result;break;
+ case 'extra_date_calculator':
+ markup=`<div class="fv-extra-grid">${field('dateStart','Start date','date')}${field('dateEnd','End date','date')}</div>`+field('dateOffset','Days to add / subtract (optional)','number','0')+btn('Calculate')+result;break;
+ case 'extra_timestamp_converter':
+ markup=field('timestampValue','Unix timestamp (seconds or milliseconds)','text',String(Math.floor(Date.now()/1000)))+field('dateValue','Or date/time (ISO format)','text','')+btn('Convert')+result;break;
+ case 'extra_url_parser':
+ markup=field('urlValue','URL','url','https://example.com/path?name=value#section')+btn('Parse URL')+result;break;
+ case 'extra_html_entity_encoder_decoder':
+ markup=area('entityInput','Text / HTML')+select('entityMode','Action',[['encode','Encode entities'],['decode','Decode entities']])+btn('Process')+result;break;
+ case 'extra_css_gradient_generator':
+ markup=`<div class="fv-extra-grid">${field('gradStart','Start color','color','#ffeb18')}${field('gradEnd','End color','color','#ff8a00')}</div>`+select('gradDirection','Direction',[['to right','Left to right'],['to left','Right to left'],['to bottom','Top to bottom'],['to top','Bottom to top'],['135deg','Diagonal']])+field('gradAngle','Custom angle (deg)','number','135')+`<div id="gradientPreview" class="fv-extra-preview" style="height:120px"></div>`+btn('Generate CSS')+result;break;
+ case 'extra_meta_tag_generator':
+ markup=field('metaTitle','Page title','text','My website')+field('metaDesc','Description','text','A short description of my page.')+field('metaKeywords','Keywords','text','tools, website')+field('metaUrl','Canonical URL','url','https://example.com')+field('metaImage','Social image URL','url','https://example.com/image.jpg')+btn('Generate Meta Tags')+result;break;
+ case 'extra_robots_txt_generator':
+ markup=field('robotsAgent','User-agent','text','*')+field('robotsAllow','Allow path','text','/')+field('robotsDisallow','Disallow path','text','/admin/')+field('robotsSitemap','Sitemap URL','url','https://example.com/sitemap.xml')+btn('Generate robots.txt')+result;break;
+ case 'extra_sitemap_generator':
+ markup=area('sitemapUrls','One absolute URL per line','https://example.com/\\nhttps://example.com/about')+btn('Generate Sitemap')+result;break;
+ case 'extra_open_graph_preview':
+ markup=field('ogTitle','Title','text','Your page title')+field('ogDesc','Description','text','A short page description.')+field('ogImage','Image URL','url','https://example.com/preview.jpg')+field('ogSite','Site name','text','FileVellum')+`<div id="ogPreview" class="fv-extra-preview"></div>`+btn('Update Preview')+result;break;
+ case 'extra_markdown_editor':
+ markup=area('markdownInput','Markdown','# Welcome\\n\\nWrite **bold** text, *italic* text, lists and links.')+`<div id="markdownPreview" class="fv-extra-preview"></div>`+btn('Update Preview')+result;break;
+ case 'extra_html_live_preview':
+ markup=area('htmlInput','HTML code','<h1>Hello, FileVellum!</h1>\\n<p>Edit this HTML to preview it.</p>')+`<div class="fv-extra-preview"><iframe id="htmlFrame" sandbox=""></iframe></div>`+btn('Update Preview')+result;break;
+ case 'extra_text_file_merger':
+ markup=field('mergeFiles','Select text files','file')+`<p class="fv-extra-note">Select multiple .txt, .md, .csv or .log files. Files are combined in the browser.</p>`+field('mergeSeparator','Separator','text','\\n\\n')+btn('Merge & Download')+result;document.getElementById('mergeFiles')?.setAttribute('multiple','multiple');break;
+ case 'extra_csv_viewer':
+ markup=field('csvFile','Choose CSV file','file')+`<div id="csvTable" class="fv-extra-preview">Choose a CSV file to display its rows.</div>`+result;break;
+ case 'extra_json_viewer':
+ markup=area('jsonInput','JSON input','{\\n  "name": "FileVellum",\\n  "tools": 20\\n}')+btn('Format & Validate')+result;break;
+ case 'extra_xml_viewer':
+ markup=area('xmlInput','XML input','<root>\\n  <name>FileVellum</name>\\n</root>')+btn('Format & Validate')+result;break;
+ case 'extra_html_table_generator':
+ markup=area('tableInput','Table data (one row per line, comma-separated)','Name,Role\\nFileVellum,Online tools\\nFast,Simple')+btn('Generate HTML Table')+result;break;
+ }
+ root.innerHTML=markup;
+ const $=id=>document.getElementById(id), out=(v)=>{if($('extraResult'))$('extraResult').textContent=v;};
+ const download=(name,text,type='text/plain')=>{const a=document.createElement('a'),u=URL.createObjectURL(new Blob([text],{type}));a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1500);};
+ const colorLum=h=>{const x=h.replace('#','');const rgb=[0,2,4].map(i=>parseInt(x.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4));return .2126*rgb[0]+.7152*rgb[1]+.0722*rgb[2];};
+ const units={
+ length:{m:1,km:1000,cm:.01,mm:.001,mi:1609.344,ft:.3048,in:.0254},
+ weight:{kg:1,g:.001,mg:.000001,lb:.45359237,oz:.028349523125},
+ area:{'m²':1,'km²':1e6,'cm²':.0001,'ft²':.09290304,'acre':4046.8564224,'hectare':10000},
+ data:{B:1,KB:1000,MB:1e6,GB:1e9,TB:1e12,KiB:1024,MiB:1048576,GiB:1073741824}
+ };
+ function fillUnits(){const kind=$('unitKind')?.value;if(!kind)return;let list=kind==='temperature'?['Celsius','Fahrenheit','Kelvin']:Object.keys(units[kind]);['unitFrom','unitTo'].forEach(id=>$(id).innerHTML=list.map(v=>`<option>${v}</option>`).join(''));if(kind==='length'){$('unitFrom').value='m';$('unitTo').value='ft';}if(kind==='weight'){$('unitFrom').value='kg';$('unitTo').value='lb';}if(kind==='data'){$('unitFrom').value='MB';$('unitTo').value='GB';}}
+ $('unitKind')?.addEventListener('change',fillUnits);if($('unitKind'))fillUnits();
+ function markdown(s){let x=esc(s);x=x.replace(/^### (.*)$/gm,'<h3>$1</h3>').replace(/^## (.*)$/gm,'<h2>$1</h2>').replace(/^# (.*)$/gm,'<h1>$1</h1>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\[([^\]]+)\]\((https?:\/\/[^ )]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>').replace(/^- (.*)$/gm,'• $1').replace(/\n/g,'<br>');return x;}
+ function csvParse(s){let rows=[],row=[],v='',q=false;for(let i=0;i<s.length;i++){let c=s[i];if(c==='"'&&q&&s[i+1]==='"'){v+='"';i++;}else if(c==='"')q=!q;else if(c===','&&!q){row.push(v);v='';}else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&s[i+1]==='\n')i++;row.push(v);if(row.some(x=>x!==''))rows.push(row);row=[];v='';}else v+=c;}row.push(v);if(row.some(x=>x!==''))rows.push(row);return rows;}
+ async function run(){
+ try{
+ switch(tool){
+ case 'extra_font_file_converter':{const f=$('fontFile').files[0];if(!f){out('Please choose a font file.');return;}const fd=new FormData();fd.append('file',f);fd.append('target_format',$('fontTarget').value);const res=await fetch('/extra-utilities/font-file-converter',{method:'POST',body:fd});if(!res.ok){let j=await res.json();throw Error(j.error||'Conversion failed');}const blob=await res.blob();download(f.name.replace(/\.[^.]+$/,'')+'.'+$('fontTarget').value,blob);out('Font converted and download started.');break;}
+ case 'extra_color_contrast_checker':{const a=$('fgColor').value,b=$('bgColor').value,l=[colorLum(a),colorLum(b)].sort((x,y)=>y-x),ratio=(l[0]+.05)/(l[1]+.05);out(`Contrast ratio: ${ratio.toFixed(2)}:1\\nWCAG AA normal text: ${ratio>=4.5?'PASS':'FAIL'}\\nWCAG AA large text: ${ratio>=3?'PASS':'FAIL'}\\nWCAG AAA normal text: ${ratio>=7?'PASS':'FAIL'}`);break;}
+ case 'extra_unit_converter':{let v=Number($('unitValue').value),a=$('unitFrom').value,b=$('unitTo').value,k=$('unitKind').value;if(!Number.isFinite(v))throw Error('Enter a valid number.');let r;if(k==='temperature'){let c=a==='Celsius'?v:a==='Fahrenheit'?(v-32)*5/9:v-273.15;r=b==='Celsius'?c:b==='Fahrenheit'?c*9/5+32:c+273.15;}else r=v*units[k][a]/units[k][b];out(`${v} ${a} = ${Number(r.toPrecision(12))} ${b}`);break;}
+ case 'extra_date_calculator':{let a=new Date($('dateStart').value+'T00:00:00'),b=new Date($('dateEnd').value+'T00:00:00'),n=Number($('dateOffset').value||0);if(!$('dateStart').value)throw Error('Choose a start date.');let days=$('dateEnd').value?Math.round((b-a)/86400000):null;let shifted=new Date(a);shifted.setDate(shifted.getDate()+n);out((days===null?'':`Difference: ${days} days\\n`)+`Date after ${n} days: ${shifted.toLocaleDateString()}`);break;}
+ case 'extra_timestamp_converter':{let t=$('timestampValue').value.trim(),d=$('dateValue').value.trim();if(d){let ms=Date.parse(d);if(!Number.isFinite(ms))throw Error('Enter a valid date/time.');out(`Unix seconds: ${Math.floor(ms/1000)}\\nUnix milliseconds: ${ms}\\nUTC: ${new Date(ms).toISOString()}`);}else{let n=Number(t);if(!Number.isFinite(n))throw Error('Enter a valid timestamp.');let ms=Math.abs(n)<1e11?n*1000:n;let dt=new Date(ms);if(isNaN(dt))throw Error('Timestamp is outside the supported date range.');out(`Local: ${dt.toLocaleString()}\\nUTC: ${dt.toISOString()}\\nUnix seconds: ${Math.floor(ms/1000)}`);}break;}
+ case 'extra_url_parser':{let u=new URL($('urlValue').value);out(`Protocol: ${u.protocol}\\nHost: ${u.host}\\nHostname: ${u.hostname}\\nPort: ${u.port||'(default)'}\\nPath: ${u.pathname}\\nQuery: ${u.search}\\nHash: ${u.hash}\\nUsername: ${u.username||'(none)'}`);break;}
+ case 'extra_html_entity_encoder_decoder':{let s=$('entityInput').value;if($('entityMode').value==='encode'){let d=document.createElement('div');d.textContent=s;out(d.innerHTML);}else{let d=document.createElement('textarea');d.innerHTML=s;out(d.value);}break;}
+ case 'extra_css_gradient_generator':{let dir=$('gradDirection').value==='135deg'?$('gradAngle').value+'deg':$('gradDirection').value;let css=`background: linear-gradient(${dir}, ${$('gradStart').value}, ${$('gradEnd').value});`; $('gradientPreview').style.background=css.replace('background: ','').replace(';','');out(css);break;}
+ case 'extra_meta_tag_generator':{let v=(id)=>$(''+id).value;let s=`<title>${esc(v('metaTitle'))}</title>\\n<meta name="description" content="${esc(v('metaDesc'))}">\\n<meta name="keywords" content="${esc(v('metaKeywords'))}">\\n<link rel="canonical" href="${esc(v('metaUrl'))}">\\n<meta property="og:title" content="${esc(v('metaTitle'))}">\\n<meta property="og:description" content="${esc(v('metaDesc'))}">\\n<meta property="og:image" content="${esc(v('metaImage'))}">\\n<meta property="og:url" content="${esc(v('metaUrl'))}">`;out(s);download('meta-tags.html',s,'text/html');break;}
+ case 'extra_robots_txt_generator':{let s=`User-agent: ${$('robotsAgent').value}\\nAllow: ${$('robotsAllow').value}\\nDisallow: ${$('robotsDisallow').value}\\n\\nSitemap: ${$('robotsSitemap').value}\\n`;out(s);download('robots.txt',s);break;}
+ case 'extra_sitemap_generator':{let urls=$('sitemapUrls').value.split(/\\r?\\n/).map(x=>x.trim()).filter(Boolean);if(!urls.length)throw Error('Enter at least one URL.');let bad=urls.filter(x=>{try{return !['http:','https:'].includes(new URL(x).protocol)}catch{return true}});if(bad.length)throw Error('Invalid URL: '+bad[0]);let xml='<?xml version="1.0" encoding="UTF-8"?>\\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\\n'+urls.map(u=>'  <url><loc>'+esc(u)+'</loc></url>').join('\\n')+'\\n</urlset>';out(xml);download('sitemap.xml',xml,'application/xml');break;}
+ case 'extra_open_graph_preview':{let title=esc($('ogTitle').value),desc=esc($('ogDesc').value),img=esc($('ogImage').value),site=esc($('ogSite').value);$('ogPreview').innerHTML=`<div style="max-width:520px;border:1px solid #ddd;border-radius:12px;overflow:hidden;background:white"><div style="height:180px;background:#eee">${img?`<img src="${img}" style="width:100%;height:180px;object-fit:cover" onerror="this.style.display='none'">`:''}</div><div style="padding:14px"><small>${site}</small><h3 style="margin:7px 0">${title}</h3><p>${desc}</p></div></div>`;out('Preview updated.');break;}
+ case 'extra_markdown_editor':$('markdownPreview').innerHTML=markdown($('markdownInput').value);out('Preview updated.');break;
+ case 'extra_html_live_preview':{let doc=$('htmlInput').value;$('htmlFrame').srcdoc=doc;out('HTML preview updated in a sandboxed frame.');break;}
+ case 'extra_text_file_merger':{let files=[...$('mergeFiles').files];if(!files.length)throw Error('Choose one or more text files.');let parts=[];for(const f of files)parts.push(`===== ${f.name} =====\\n`+await f.text());let s=parts.join($('mergeSeparator').value);download('merged-text.txt',s);out(`${files.length} files merged and download started.`);break;}
+ case 'extra_json_viewer':{let v=JSON.parse($('jsonInput').value);let s=JSON.stringify(v,null,2);$('jsonInput').value=s;out('Valid JSON.\\n\\n'+s);break;}
+ case 'extra_xml_viewer':{let s=$('xmlInput').value,doc=new DOMParser().parseFromString(s,'application/xml');if(doc.querySelector('parsererror'))throw Error('Invalid XML: '+doc.querySelector('parsererror').textContent);let x=new XMLSerializer().serializeToString(doc);x=x.replace(/></g,'>\\n<');$('xmlInput').value=x;out('Valid XML.\\n\\n'+x);break;}
+ case 'extra_html_table_generator':{let rows=csvParse($('tableInput').value);if(!rows.length)throw Error('Enter at least one row.');let html='<table>\\n'+rows.map((r,i)=>'  <tr>'+r.map(c=>i===0?'<th>'+esc(c)+'</th>':'<td>'+esc(c)+'</td>').join('')+'</tr>').join('\\n')+'\\n</table>';out(html);download('table.html',html,'text/html');break;}
+ }
+ }catch(e){out('Error: '+e.message);}
+ }
+ $('runExtra')?.addEventListener('click',run);
+ $('clearExtra')?.addEventListener('click',()=>location.reload());
+ $('fontPreviewFile')?.addEventListener('change',async e=>{let f=e.target.files[0];if(!f)return;let url=URL.createObjectURL(f);try{let face=new FontFace('fvUserFont',`url(${url})`);await face.load();document.fonts.add(face);$('fontPreview').style.fontFamily='fvUserFont';$('fontPreview').textContent=$('fontSample').value;}catch(err){out('This browser could not preview this font format.');}});
+ $('fontSample')?.addEventListener('input',()=>{$('fontPreview').textContent=$('fontSample').value;});
+ $('fgColor')?.addEventListener('input',()=>{});$('bgColor')?.addEventListener('input',()=>{});
+ $('gradStart')?.addEventListener('input',()=>{if($('gradientPreview'))$('gradientPreview').style.background=`linear-gradient(135deg,${$('gradStart').value},${$('gradEnd').value})`;});
+ $('gradEnd')?.addEventListener('input',()=>{if($('gradientPreview'))$('gradientPreview').style.background=`linear-gradient(135deg,${$('gradStart').value},${$('gradEnd').value})`;});
+ $('markdownInput')?.addEventListener('input',()=>{$('markdownPreview').innerHTML=markdown($('markdownInput').value);});
+ $('htmlInput')?.addEventListener('input',()=>{$('htmlFrame').srcdoc=$('htmlInput').value;});
+ $('ogTitle')?.addEventListener('input',()=>{if($('ogPreview'))$('ogPreview').innerHTML=`<h3>${esc($('ogTitle').value)}</h3><p>${esc($('ogDesc').value)}</p>`;});
+ $('ogDesc')?.addEventListener('input',()=>{if($('ogPreview'))$('ogPreview').innerHTML=`<h3>${esc($('ogTitle').value)}</h3><p>${esc($('ogDesc').value)}</p>`;});
+ $('csvFile')?.addEventListener('change',async e=>{try{let f=e.target.files[0];if(!f)return;let rows=csvParse(await f.text());if(!rows.length)throw Error('No rows found');let html='<table>'+rows.map((r,i)=>'<tr>'+r.map(c=>i===0?'<th>'+esc(c)+'</th>':'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')+'</table>'; $('csvTable').innerHTML=html;out(`${rows.length} rows loaded.`);}catch(err){out('Error: '+err.message);}});
+ if(tool==='extra_markdown_editor')$('markdownPreview').innerHTML=markdown($('markdownInput').value);
+ if(tool==='extra_html_live_preview')$('htmlFrame').srcdoc=$('htmlInput').value;
+ if(tool==='extra_open_graph_preview')$('ogPreview').innerHTML=`<h3>${esc($('ogTitle').value)}</h3><p>${esc($('ogDesc').value)}</p>`;
+})();
+</script>
+
+
+<style id="filevellum-email-homepage-match">
+.yellowbee-footer .footer-email { color:#f4f038 !important; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; font-size:18px !important; font-weight:900 !important; letter-spacing:1px !important; text-decoration:none !important; }
+</style>
+</body>
+</html>

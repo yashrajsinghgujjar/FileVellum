@@ -1,0 +1,24 @@
+FileVellum dependency setup
+===========================
+
+1. Use Python 3.11 or 3.12 for the broadest compatibility with the document,
+   PDF, image, OCR, and background-removal packages in requirements.txt.
+2. Create/activate a virtual environment, then run:
+      python -m pip install --upgrade pip
+      pip install -r requirements.txt
+3. Optional system programs:
+   - Tesseract OCR is required for OCR tools. Install the Tesseract program
+     separately and make sure its executable is available on PATH.
+   - ZBar is required by pyzbar for barcode/QR image scanning on some systems.
+   - Background removal uses rembg[cpu] and downloads its model the first time.
+4. Configure contact email using environment variables; never put an app password
+   in source code:
+      FILEVELLUM_EMAIL_USER=your-gmail-address
+      FILEVELLUM_EMAIL_APP_PASSWORD=your-google-app-password
+      FILEVELLUM_CONTACT_TO=filevellum@gmail.com
+5. Debug mode is disabled by default. Only enable it for local development by
+   setting FILEVELLUM_DEBUG=1. Do not enable Flask debug mode on a public server.
+
+The contact form includes basic per-process throttling. If deploying with
+multiple workers or multiple servers, also configure shared rate limiting at
+your reverse proxy or application gateway.

@@ -1,0 +1,34 @@
+# Core Flask application and document processing
+Flask>=3.0,<4.0
+Werkzeug>=3.0,<4.0
+PyMuPDF>=1.24
+pypdf>=5.0
+Pillow>=10.0
+python-docx>=1.1
+pdfplumber>=0.11
+pandas>=2.0
+python-pptx>=1.0
+Markdown>=3.6
+beautifulsoup4>=4.12
+EbookLib>=0.18
+WeasyPrint>=62
+CairoSVG>=2.7
+
+# Archive support (including AES/password-protected ZIP files)
+pyzipper>=0.3.6
+
+# PDF/image/OCR and image-format tools
+reportlab>=4.0
+pytesseract>=0.3.10
+rembg[cpu]>=2.0.50
+pillow-heif>=0.16
+pillow-avif-plugin>=1.4
+
+# QR/barcode and image-scanning tools
+qrcode[pil]>=7.4
+python-barcode>=0.15
+pyzbar>=0.1.9
+opencv-python-headless>=4.9
+numpy>=1.26
+fonttools>=4.0
+requests>=2.31

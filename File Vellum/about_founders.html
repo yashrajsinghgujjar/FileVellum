@@ -1,0 +1,1018 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description" content="Meet Yashraj Gurjar, founder of FileVellum.">
+
+    <title>About Founder | FileVellum</title>
+    <link rel="icon" type="image/png" href="/static/images/29.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        :root {
+            --yellow: #f4f038;
+            --black: #080808;
+            --white: #ffffff;
+            --muted: #b8b8b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--yellow);
+            color: var(--black);
+            font-family: "Space Grotesk", Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        /* =========================
+           HEADER
+        ========================= */
+
+        .brand-logo {
+            display:inline-flex;
+            align-items:center;
+            justify-content:center; 
+            background:#000; padding:8px 40px; 
+            border-radius:10px; 
+            line-height:0; 
+            height:56px;
+        }
+
+        
+        .site-header {
+            width: 100%;
+            max-width: 1280px;
+            height: 90px;
+            margin: auto;
+            padding: 0 35px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .brand-logo img {
+            display:block; 
+            width:auto; 
+            height:44px; 
+            object-fit: contain;
+        }
+
+        .back-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+
+            padding: 12px 20px;
+
+            border: 1.5px solid var(--black);
+            border-radius: 50px;
+
+            color: var(--black);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+
+            transition: .25s ease;
+        }
+
+        .back-home:hover {
+            background: var(--black);
+            color: var(--yellow);
+            transform: translateY(-2px);
+        }
+
+        /* =========================
+           INTRO SECTION
+        ========================= */
+
+        .main-content {
+            max-width: 1280px;
+            margin: auto;
+            padding: 0 35px 90px;
+        }
+
+        .intro-section {
+            text-align: center;
+            max-width: 850px;
+            margin: auto;
+            padding: 70px 20px 65px;
+        }
+
+        .intro-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+
+            margin-bottom: 25px;
+
+            font-family: "Space Mono", monospace;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .intro-label::before,
+        .intro-label::after {
+            content: "";
+            width: 25px;
+            height: 2px;
+            background: var(--black);
+        }
+
+        .intro-section h1 {
+            font-size: clamp(48px, 7vw, 90px);
+            line-height: .95;
+            font-weight: 700;
+            letter-spacing: -5px;
+        }
+
+        .intro-section h1 span {
+            display: block;
+        }
+
+        .intro-description {
+            max-width: 650px;
+            margin: 25px auto 0;
+
+            font-size: 16px;
+            line-height: 1.8;
+        }
+
+        /* =========================
+           FOUNDER CARD
+        ========================= */
+
+        .founder-card {
+            display: grid;
+            grid-template-columns: 0.9fr 1.1fr;
+
+            width: 100%;
+            max-width: 1000px;
+
+            margin: auto;
+
+            background: var(--black);
+            color: var(--white);
+
+            border-radius: 30px;
+            overflow: hidden;
+
+            box-shadow: 0 20px 50px rgba(0, 0, 0, .15);
+        }
+
+        /* Founder Image */
+
+        .founder-image {
+            position: relative;
+
+            min-height: 480px;
+            height: 100%;
+
+            overflow: hidden;
+            background: #171717;
+        }
+
+        .founder-image img {
+            display: block;
+
+            width: 100%;
+            height: 100%;
+
+            object-fit: cover;
+            object-position: center top;
+
+            transition: transform .5s ease;
+        }
+
+        .founder-card:hover .founder-image img {
+            transform: scale(1.025);
+        }
+
+        /* Founder Details */
+
+        .founder-details {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+
+            padding: 55px 50px;
+        }
+
+        .founder-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+
+            width: fit-content;
+
+            padding: 9px 15px;
+
+            background: var(--yellow);
+            color: var(--black);
+
+            border-radius: 50px;
+
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .founder-details h2 {
+            margin-top: 25px;
+
+            font-size: clamp(34px, 4vw, 55px);
+            line-height: 1.05;
+            letter-spacing: -2px;
+            font-weight: 700;
+        }
+
+        .founder-role {
+            margin-top: 15px;
+
+            color: var(--yellow);
+
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: .5px;
+        }
+
+        .founder-divider {
+            width: 55px;
+            height: 3px;
+
+            margin: 28px 0;
+
+            background: var(--yellow);
+            border-radius: 10px;
+        }
+
+        .founder-bio {
+            color: #d0d0d0;
+
+            font-size: 15px;
+            line-height: 1.9;
+        }
+
+        .founder-quote {
+            margin-top: 25px;
+            padding-left: 18px;
+
+            border-left: 3px solid var(--yellow);
+
+            color: var(--white);
+
+            font-size: 14px;
+            line-height: 1.8;
+            font-style: italic;
+        }
+
+        .contact-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+
+            width: fit-content;
+
+            margin-top: 30px;
+            padding: 14px 22px;
+
+            background: var(--yellow);
+            color: var(--black);
+
+            border-radius: 50px;
+
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+
+            transition: .25s ease;
+        }
+
+        .contact-button:hover {
+            background: var(--white);
+            transform: translateY(-3px);
+        }
+
+        /* =========================
+           FOOTER
+        ========================= */
+
+        .site-footer {
+            background: var(--black);
+            color: #aaa;
+
+            padding: 45px 35px 25px;
+
+            font-family: "Space Mono", monospace;
+        }
+
+        .footer-container {
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        .footer-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 30px;
+
+            padding-bottom: 35px;
+
+            border-bottom: 1px solid #333;
+        }
+
+        .footer-logo img {
+            display: block;
+
+            width: 180px;
+            max-height: 55px;
+
+            height: auto;
+            object-fit: contain;
+        }
+
+        .footer-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 20px;
+        }
+
+        .footer-email {
+            color: var(--yellow);
+
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .5px;
+        }
+
+        .footer-socials {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .footer-socials a {
+            width: 38px;
+            height: 38px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border: 1px solid #444;
+            border-radius: 50%;
+
+            color: var(--white);
+            font-size: 14px;
+
+            transition: .25s ease;
+        }
+
+        .footer-socials a:hover {
+            background: var(--yellow);
+            border-color: var(--yellow);
+            color: var(--black);
+
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+
+            padding-top: 25px;
+
+            font-size: 10px;
+            letter-spacing: .8px;
+        }
+
+        /* =========================
+           RESPONSIVE DESIGN
+        ========================= */
+
+        @media (max-width: 900px) {
+
+            .founder-card {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .founder-details {
+                padding: 40px 30px;
+            }
+
+            .founder-image {
+                min-height: 420px;
+            }
+
+            .founder-details h2 {
+                font-size: 38px;
+            }
+
+        }
+
+        @media (max-width: 680px) {
+
+            .site-header {
+                height: 75px;
+                padding: 0 18px;
+            }
+
+            .brand-logo img {
+                width: 145px;
+            }
+
+            .back-home {
+                padding: 10px 14px;
+                font-size: 10px;
+            }
+
+            .main-content {
+                padding: 0 16px 55px;
+            }
+
+            .intro-section {
+                padding: 50px 5px 40px;
+            }
+
+            .intro-section h1 {
+                font-size: 55px;
+                letter-spacing: -3px;
+            }
+
+            .intro-description {
+                font-size: 14px;
+            }
+
+            .founder-card {
+                grid-template-columns: 1fr;
+                border-radius: 24px;
+            }
+
+            .founder-image {
+                height: 360px;
+                min-height: 0;
+            }
+
+            .founder-image img {
+                object-position: center 20%;
+            }
+
+            .founder-details {
+                padding: 35px 25px 40px;
+            }
+
+            .founder-details h2 {
+                font-size: 38px;
+            }
+
+            .founder-bio {
+                font-size: 14px;
+            }
+
+            .site-footer {
+                padding: 35px 20px 22px;
+            }
+
+            .footer-top {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .footer-right {
+                align-items: center;
+            }
+
+            .footer-socials {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 12px;
+                line-height: 1.7;
+            }
+
+        }
+
+        @media (max-width: 380px) {
+
+            .intro-section h1 {
+                font-size: 45px;
+            }
+
+            .founder-details h2 {
+                font-size: 32px;
+            }
+
+            .founder-image {
+                height: 300px;
+            }
+
+        }
+
+    </style>
+
+<style id="filevellum-homepage-footer-match">
+    .yellowbee-footer {
+      background-color: #000;
+      color: #fff;
+      padding: 60px 50px 30px 50px;
+      border-top: 4px solid #f4f038;
+      position: relative;
+      z-index: 30;
+    }
+
+    .footer-inner {
+      max-width: 1300px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 30px;
+      border-bottom: 1px solid #333;
+      padding-bottom: 40px;
+    }
+
+    .footer-email {
+      color: #f4f038;
+      font-weight: 900;
+      font-size: 18px;
+      text-decoration: none;
+      letter-spacing: 1px;
+    }
+
+    .social-icons {
+      display: flex;
+      gap: 15px;
+    }
+
+    .social-icon-btn {
+      width: 45px;
+      height: 45px;
+      border: 2px solid #444;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .social-icon-btn:hover {
+      border-color: #f4f038;
+      color: #f4f038;
+      background: #111;
+    }
+
+    .footer-bottom-row {
+      max-width: 1300px;
+      margin: 30px auto 0 auto;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #777;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+.yellowbee-footer {padding:58px 50px 28px;}
+.yellowbee-footer .footer-inner {max-width:1300px; margin:0 auto; display:grid; grid-template-columns:minmax(220px,1fr) auto minmax(220px,1fr); align-items:center; justify-content:initial; gap:35px; text-align:left; padding-bottom:42px; border-bottom:1px solid #333;}
+.yellowbee-footer .footer-brand {display:block; width:100%; max-width:330px; line-height:0;}
+.yellowbee-footer .footer-brand img {width:100%; max-width:330px; height:auto; display:block;}
+.yellowbee-footer .footer-nav {display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:clamp(12px,1.7vw,27px);}
+.yellowbee-footer .footer-nav a {font-size:12px; font-weight:900; text-decoration:none; color:white; white-space:nowrap; letter-spacing:.35px;}
+.yellowbee-footer .footer-nav a:hover {color:#f4f038;}
+.yellowbee-footer .footer-right {justify-self:end; display:flex; flex-direction:column; align-items:flex-end; gap:18px;}
+.yellowbee-footer .footer-email {font-size:clamp(12px,1.2vw,17px); font-weight:900; color:#f4f038; text-decoration:none; letter-spacing:.3px; white-space:nowrap;}
+.yellowbee-footer .social-icons {display:flex; flex-wrap:wrap; justify-content:flex-end; gap:10px;}
+.yellowbee-footer .social-icon-btn {width:39px; height:39px;}
+.yellowbee-footer .footer-bottom-row {max-width:1300px; margin:24px auto 0; display:flex; justify-content:space-between; gap:20px; color:#858585; font-size:11px; letter-spacing:.6px;}
+@media(max-width:1050px){.yellowbee-footer .footer-inner {grid-template-columns:1fr 1fr; gap:28px;} .yellowbee-footer .footer-nav {grid-column:1/-1; grid-row:2;} .yellowbee-footer .footer-right {grid-column:2;grid-row:1;}}
+@media(max-width:650px){.yellowbee-footer{padding:44px 20px 25px;} .yellowbee-footer .footer-inner{grid-template-columns:1fr;justify-items:center;text-align:center;gap:28px;} .yellowbee-footer .footer-brand{max-width:270px;} .yellowbee-footer .footer-right{grid-column:1;grid-row:auto;justify-self:center;align-items:center;} .yellowbee-footer .footer-nav{grid-column:1;grid-row:auto;} .yellowbee-footer .social-icons{justify-content:center;} .yellowbee-footer .footer-bottom-row{flex-direction:column;align-items:center;text-align:center;gap:10px;}}
+
+/* Footer refinement: smaller logo, no navigation, portfolio icon */
+.yellowbee-footer .footer-inner {
+  display:flex; justify-content:space-between; align-items:center;
+  gap:28px; text-align:left;
+}
+.yellowbee-footer .footer-brand {width:240px; max-width:42%; flex:0 1 240px;}
+.yellowbee-footer .footer-brand img {width:100%; max-width:240px; height:auto;}
+.yellowbee-footer .footer-right {margin-left:auto; align-items:flex-end;}
+@media(max-width:650px){
+ .yellowbee-footer .footer-inner {flex-direction:column; text-align:center; gap:24px;}
+ .yellowbee-footer .footer-brand {width:210px; max-width:80%; flex:auto;}
+ .yellowbee-footer .footer-brand img {max-width:210px;}
+ .yellowbee-footer .footer-right {margin:0; align-items:center;}
+}
+
+/* Footer: left-aligned compact logo, right-aligned contact/socials */
+.yellowbee-footer .footer-inner {
+  display:flex !important;
+  flex-direction:row !important;
+  justify-content:space-between !important;
+  align-items:center !important;
+  text-align:left !important;
+  gap:32px;
+}
+.yellowbee-footer .footer-brand {
+  display:block; flex:0 0 auto !important;
+  width:185px !important; max-width:40% !important;
+  margin:0 !important;
+}
+.yellowbee-footer .footer-brand img {display:block; width:100% !important; max-width:185px !important; height:auto;}
+.yellowbee-footer .footer-right {
+  margin-left:auto !important;
+  display:flex; flex-direction:column; align-items:flex-end;
+  text-align:right;
+}
+.yellowbee-footer .social-icons {justify-content:flex-end;}
+@media(max-width:650px) {
+ .yellowbee-footer .footer-inner {flex-direction:column !important; text-align:center !important; gap:24px;}
+ .yellowbee-footer .footer-brand {max-width:75% !important; width:185px !important;}
+ .yellowbee-footer .footer-right {margin:0 !important; align-items:center; text-align:center;}
+ .yellowbee-footer .social-icons {justify-content:center;}
+}
+</style> 
+
+<style id="filevellum-compact-footer-only">
+/* More compact footer spacing; preserves existing colors, layout and content */
+.yellowbee-footer { padding: 20px 50px 8px !important; }
+.yellowbee-footer .footer-inner { padding-bottom: 11px !important; gap: 11px !important; }
+.yellowbee-footer .footer-bottom-row { margin-top: 7px !important; }
+@media(max-width:650px) {
+  .yellowbee-footer { padding: 17px 20px 8px !important; }
+  .yellowbee-footer .footer-inner { gap: 11px !important; padding-bottom: 11px !important; }
+  .yellowbee-footer .footer-bottom-row { margin-top: 6px !important; }
+}
+</style>
+<style>
+/* Preserve the existing About Founder logo dimensions in both pages. */
+.yellowbee-footer .footer-brand {
+  display: block !important;
+  width: 180px !important;
+  max-width: 40% !important;
+  flex: 0 0 180px !important;
+  line-height: 0;
+  margin: 0 !important;
+}
+.yellowbee-footer .footer-brand img {
+  display: block !important;
+  width: 180px !important;
+  max-width: 180px !important;
+  max-height: 55px !important;
+  height: auto !important;
+  object-fit: contain;
+}
+@media (max-width: 650px) {
+  .yellowbee-footer .footer-brand {
+    width: 180px !important;
+    max-width: 75% !important;
+    flex: 0 0 180px !important;
+  }
+  .yellowbee-footer .footer-brand img {
+    width: 180px !important;
+    max-width: 180px !important;
+  }
+}
+
+</style>
+
+
+<style id="filevellum-footer-spacing-match">
+/* Footer spacing only: match the requested compact footer strip on all pages. */
+.yellowbee-footer { padding: 20px 50px 8px !important; }
+.yellowbee-footer .footer-inner { padding-bottom: 11px !important; gap: 11px !important; }
+.yellowbee-footer .footer-bottom-row { margin-top: 7px !important; }
+@media (max-width: 650px) {
+  .yellowbee-footer { padding: 17px 20px 8px !important; }
+  .yellowbee-footer .footer-inner { gap: 11px !important; padding-bottom: 11px !important; }
+  .yellowbee-footer .footer-bottom-row { margin-top: 6px !important; }
+}
+</style>
+
+<style id="filevellum-footer-spacing-fix-v2">
+/* Footer-only correction: consistent spacing and no yellow strip below footer. */
+html, body { min-height: 100%; }
+body { min-height: 100vh; display: flex; flex-direction: column; }
+.yellowbee-footer { margin-top: auto !important; flex-shrink: 0; box-sizing: border-box; }
+.yellowbee-footer .footer-inner { padding-bottom: 11px !important; gap: 11px !important; }
+.yellowbee-footer .footer-bottom-row { margin-top: 7px !important; }
+@media (max-width: 650px) {
+  .yellowbee-footer { padding: 17px 20px 8px !important; }
+  .yellowbee-footer .footer-inner { padding-bottom: 11px !important; gap: 11px !important; }
+  .yellowbee-footer .footer-bottom-row { margin-top: 6px !important; }
+}
+</style>
+
+
+<style id="filevellum-footer-reference-match">
+/* Footer reference match: compact logo, mono copyright type, and equal spacing on all pages. */
+.yellowbee-footer {
+  background: #000 !important;
+  color: #fff !important;
+  border-top: 0 !important;
+  padding: 18px 30px 0 !important;
+  box-sizing: border-box;
+  width: 100%;
+}
+.yellowbee-footer .footer-inner {
+  max-width: 1700px !important;
+  min-height: 82px;
+  margin: 0 auto !important;
+  padding: 0 0 14px !important;
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 24px !important;
+  border-bottom: 1px solid #333 !important;
+  box-sizing: border-box;
+}
+.yellowbee-footer .footer-brand {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  flex: 0 0 64px !important;
+  width: 64px !important;
+  max-width: 64px !important;
+  margin: 0 !important;
+  line-height: 0 !important;
+}
+.yellowbee-footer .footer-brand img {
+  display: block !important;
+  width: 64px !important;
+  max-width: 64px !important;
+  height: 54px !important;
+  max-height: 54px !important;
+  object-fit: contain !important;
+}
+.yellowbee-footer .footer-right {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  justify-content: center !important;
+  gap: 14px !important;
+  margin: 0 0 0 auto !important;
+  text-align: right !important;
+}
+.yellowbee-footer .footer-email {
+  font-size: 16px !important;
+  letter-spacing: .3px !important;
+  font-weight: 900 !important;
+}
+.yellowbee-footer .social-icons {
+  display: flex !important;
+  justify-content: flex-end !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+}
+.yellowbee-footer .social-icon-btn {
+  width: 46px !important;
+  height: 46px !important;
+  box-sizing: border-box;
+}
+.yellowbee-footer .footer-bottom-row {
+  width: calc(100% + 60px) !important;
+  max-width: none !important;
+  margin: 0 -30px !important;
+  padding: 25px 30px !important;
+  min-height: 76px;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 20px !important;
+  box-sizing: border-box;
+  border-top: 1px solid #222 !important;
+  border-bottom: 1px solid #222 !important;
+  background: #000 !important;
+  color: #777 !important;
+  font-family: "Space Mono", monospace !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  line-height: 24px !important;
+  letter-spacing: .5px !important;
+  text-transform: uppercase !important;
+}
+.yellowbee-footer .footer-bottom-row span {
+  font-family: "Space Mono", monospace !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  letter-spacing: .5px !important;
+}
+@media (max-width: 650px) {
+  .yellowbee-footer { padding: 18px 20px 0 !important; }
+  .yellowbee-footer .footer-inner {
+    min-height: 0; padding-bottom: 16px !important;
+    flex-direction: column !important; gap: 18px !important;
+    justify-content: center !important; text-align: center !important;
+  }
+  .yellowbee-footer .footer-brand { flex-basis: 64px !important; }
+  .yellowbee-footer .footer-right { margin: 0 !important; align-items: center !important; text-align: center !important; }
+  .yellowbee-footer .social-icons { justify-content: center !important; }
+  .yellowbee-footer .footer-bottom-row {
+    width: calc(100% + 40px) !important; margin: 0 -20px !important;
+    padding: 20px !important; min-height: 76px;
+    flex-direction: column !important; gap: 8px !important;
+    text-align: center !important;
+  }
+}
+</style>
+
+
+<style id="filevellum-footer-line-above-content-final">
+/* Matching subtle separator directly above the logo and contact/social area. */
+.yellowbee-footer { border-top: 0 !important; }
+.yellowbee-footer .footer-inner {
+  border-top: 1px solid #333 !important;
+  padding-top: 25px !important;
+  box-sizing: border-box !important;
+}
+</style>
+</head>
+
+<body>
+
+    <!-- =========================
+         HEADER
+    ========================= -->
+
+    <header class="site-header">
+
+        <a href="/" class="brand-logo" aria-label="FileVellum Home">
+            <img src="static/images/logo.png"
+                alt="FileVellum Logo">
+        </a>
+
+        <a href="/" class="back-home">
+
+            <i class="fa-solid fa-arrow-left"></i>
+
+            Back Home
+
+        </a>
+
+    </header>
+
+
+    <!-- =========================
+         MAIN CONTENT
+    ========================= -->
+
+    <main class="main-content">
+
+        <!-- Intro -->
+
+        <section class="intro-section">
+
+            <div class="intro-label">
+                The Person Behind FileVellum
+            </div>
+
+            <h1>
+                <span>About</span>
+                <span>Founder.</span>
+            </h1>
+
+            <p class="intro-description">
+
+                FileVellum is built to make everyday file work
+                simpler, faster, and accessible. My goal is to bring
+                useful file tools together in one clean workspace.
+
+            </p>
+
+        </section>
+
+
+        <!-- Founder Profile -->
+
+        <article class="founder-card">
+
+            <div class="founder-image">
+
+                <img
+                    src="static/images/yashraj-gurjar-founder.png"
+                    alt="Yashraj Gurjar - Founder of FileVellum">
+
+            </div>
+
+
+            <div class="founder-details">
+
+                <div class="founder-badge">
+
+                    <i class="fa-solid fa-tag"></i>
+
+                    Founder
+
+                </div>
+
+
+                <h2>
+                    Yashraj<br>Gurjar
+                </h2>
+
+
+                <p class="founder-role">
+
+                    Founder &amp; Developer
+
+                </p>
+
+
+                <div class="founder-divider"></div>
+
+
+                <p class="founder-bio">
+
+                    I’m Yashraj Gurjar, the founder of FileVellum.
+                    I’m building a simple, reliable place for people
+                    to convert, manage, and work with their files —
+                    without unnecessary complexity.
+
+                </p>
+
+
+
+
+                <a href="/#contact" class="contact-button">
+
+                    Contact Me
+
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+
+                </a>
+
+            </div>
+
+        </article>
+
+    </main>
+
+
+    <!-- =========================
+         FOOTER
+    ========================= -->
+
+    <footer class="yellowbee-footer">
+<div class="footer-inner"><a aria-label="FileVellum home" class="footer-brand" href="#"><img src="static/images/logo.png" alt="FileVellum logo"></a><div class="footer-right"><a class="footer-email" href="mailto:filevellum@gmail.com">FILEVELLUM@GMAIL.COM</a><div class="social-icons">
+<a aria-label="Instagram" class="social-icon-btn" href="https://www.instagram.com/yashrajsinghgujjar/" rel="noopener noreferrer" target="_blank" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+<a aria-label="YouTube" class="social-icon-btn" href="https://www.youtube.com/"  rel="noopener noreferrer" target="_blank" title="YouTube"><i class="fa-brands fa-youtube"></i></a>
+<a aria-label="LinkedIn" class="social-icon-btn" href="https://www.linkedin.com/in/yashrajsinghgujjar/" rel="noopener noreferrer" target="_blank" title="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+<a aria-label="Facebook" class="social-icon-btn" href="https://www.facebook.com/yashrajsinghgujjar" rel="noopener noreferrer" target="_blank" title="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+<a aria-label="GitHub" class="social-icon-btn" href="https://github.com/yashrajsinghgujjar" rel="noopener noreferrer" target="_blank" title="GitHub"><i class="fa-brands fa-github"></i></a>
+<a aria-label="Portfolio Website" class="social-icon-btn" href="https://yashrajsinghgujjar.vercel.app/" rel="noopener noreferrer" target="_blank"  title="Portfolio Website"><i class="fa-solid fa-globe"></i></a></div></div></div>
+<div class="footer-bottom-row">
+<span>© 2026 FILEVELLUM. ALL RIGHTS RESERVED.</span>
+<span>Your Files, Endless Possibilities.</span>
+</div>
+</footer>
+
+
+<style id="filevellum-email-homepage-match">
+.yellowbee-footer .footer-email { color:#f4f038 !important; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important; font-size:18px !important; font-weight:900 !important; letter-spacing:1px !important; text-decoration:none !important; }
+</style>
+</body>
+</html>

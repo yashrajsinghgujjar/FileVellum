@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>File Vellum</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/29.png') }}">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<style>
+    /* ==========================================
+       RESET & BASE STYLES
+       ========================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body, html {
+      width: 100%;
+      background-color: #f4f038; /* Bright yellow theme */
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #000000;
+      overflow-x: hidden;
+    }
+
+    /* Scroll container for kinetic velocity text */
+    .scroll-container {
+      height: 250vh; /* recalculated below to fit the single heading */
+      position: relative;
+    }
+
+    .hero-fixed {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    /* ==========================================
+       HEADER / NAV BAR
+       ========================================== */
+    header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 30px 50px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 20;
+    }
+
+    .nav-btns {
+      display: flex;
+      gap: 15px;
+    }
+
+    .btn {
+      padding: 10px 24px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn-outline {
+      border: 2px solid #000000;
+      background: transparent;
+      color: #000000;
+    }
+
+    .btn-outline:hover {
+      background: #000000;
+      color: #f4f038;
+    }
+
+    .btn-solid {
+      background: #000000;
+      color: #f4f038;
+      border: 2px solid #000000;
+    }
+
+    .btn-solid:hover {
+      opacity: 0.85;
+    }
+
+    /* ==========================================
+       MARQUEE TRACK STYLES
+       ========================================== */
+    .marquee-track {
+      display: flex;
+      width: max-content;
+      will-change: transform;
+      transition: transform 0.1s ease-out;
+    }
+
+    .marquee-group {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      padding-right: 30px;
+      flex-shrink: 0;
+    }
+
+    .word-text {
+      font-size: clamp(4rem, 9vw, 9rem);
+      font-weight: 900;
+      letter-spacing: -3px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    .char {
+      display: inline-block;
+      animation: waveFloat 3.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes waveFloat {
+      0% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(-4deg); }
+      100% { transform: translateY(15px) rotate(4deg); }
+    }
+
+    /* CUTE DOODLE ICONS */
+    .icon-box {
+      width: clamp(50px, 7vw, 90px);
+      height: clamp(50px, 7vw, 90px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 3px dashed #000;
+      border-radius: 16px;
+      background: #fff;
+      padding: 8px;
+      box-shadow: 4px 4px 0px #000;
+      animation: iconWobble 4s ease-in-out infinite alternate;
+      position: relative;
+    }
+
+    .icon-box span {
+      font-size: 14px;
+      font-weight: 900;
+      color: #000;
+    }
+
+    @keyframes iconWobble {
+      0% { transform: translateY(-8px) rotate(-6deg); }
+      100% { transform: translateY(10px) rotate(6deg); }
+    }
+
+
+    /* Bold hand-drawn black doodles inspired by the supplied reference */
+    .icon-box.sketch-doodle {
+      width: clamp(74px, 8vw, 120px);
+      height: clamp(74px, 8vw, 120px);
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      padding: 0;
+      animation: none;
+      transform: rotate(-9deg);
+    }
+    .icon-box.sketch-doodle:nth-of-type(even) { transform: rotate(9deg); }
+    .sketch-doodle svg {
+      width: 100%; height: 100%;
+      fill: none; stroke: #000; stroke-width: 6;
+      stroke-linecap: round; stroke-linejoin: round;
+    }
+    .end-arrow {
+      position: relative; align-self: center; flex-shrink: 0; margin-left: -22px; margin-top: 100px;
+      width: clamp(85px, 12vw, 165px);
+      opacity: 1; transform: none;
+      pointer-events: none; z-index: 22;
+    }
+    .end-arrow svg { width: 100%; fill: none; stroke: #000; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+
+    .hero-footer-text {
+      position: absolute;
+      bottom: 30px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      z-index: 20;
+    }
+
+    .hero-footer-text p {
+      font-size: 14px;
+      font-weight: 700;
+      color: #000000;
+    }
+
+    /* ==========================================
+       TOOLS GRID SECTION (MAIN FEATURE GRID)
+       ========================================== */
+    .tools-main-section {
+      background-color: #f4f038;
+      color: #000000;
+      padding: 90px 40px;
+      position: relative;
+      z-index: 30;
+      border-top: 5px solid #000;
+    }
+
+    .tools-wrapper {
+      max-width: 1250px;
+      margin: 0 auto;
+    }
+
+    .section-block {
+      margin-top: 50px;
+    }
+
+    .section-block:first-child {
+      margin-top: 0;
+    }
+
+    .section-header {
+      margin-bottom: 22px;
+    }
+
+    .section-header h2 {
+      font-size: 22px;
+      font-weight: 900;
+      color: #000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-header h2 i {
+      color: #000;
+      background: #f4f038;
+      padding: 6px;
+      border-radius: 6px;
+      border: 2px solid #000;
+      font-size: 16px;
+    }
+
+    .section-header p {
+      font-size: 14px;
+      color: #555;
+      margin-top: 4px;
+      font-weight: 600;
+    }
+
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .tool-card {
+      background: #ffffff;
+      border: 3px solid #000000;
+      padding: 24px;
+      border-radius: 16px;
+      text-decoration: none;
+      color: inherit;
+      box-shadow: 5px 5px 0px #000000;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tool-card:hover {
+      transform: translate(-3px, -3px);
+      box-shadow: 8px 8px 0px #000000;
+      background: #fffdf0;
+    }
+
+    .tool-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      border: 2px solid #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      margin-bottom: 14px;
+      background: #f4f038;
+      color: #000;
+      box-shadow: 2px 2px 0px #000;
+    }
+
+    .tool-card h3 {
+      font-size: 16px;
+      font-weight: 900;
+      color: #000;
+      margin-bottom: 6px;
+    }
+
+    .tool-card p {
+      font-size: 13px;
+      color: #444;
+      line-height: 1.4;
+      font-weight: 500;
+    }
+
+    /* ==========================================
+       SEPARATE SECTION: CONTACT & FORM
+       ========================================== */
+    .separate-section {
+      background-color: #ffffff;
+      color: #000000;
+      padding: 100px 50px;
+      min-height: 90vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-top: 5px solid #000;
+      position: relative;
+      z-index: 30;
+    }
+
+    .contact-wrapper {
+      max-width: 1200px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .contact-left h2 {
+      font-size: clamp(3rem, 6vw, 5.5rem);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -2px;
+      margin-bottom: 25px;
+    }
+
+    .contact-left p {
+      font-size: 16px;
+      color: #444;
+      line-height: 1.6;
+      max-width: 400px;
+      font-weight: 600;
+      font-family: "Space Mono", monospace;
+    }
+
+    .contact-card {
+      background: #f4f038;
+      border: 3px solid #000;
+      border-radius: 24px;
+      padding: 35px;
+      box-shadow: 10px 10px 0px #000;
+      position: relative;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group.full {
+      grid-column: span 2;
+    }
+
+    .form-group label {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .form-control {
+      background: #fff;
+      border: 2px solid #000;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #000;
+      outline: none;
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      height: 120px;
+    }
+
+    .submit-btn {
+      background: #000;
+      color: #f4f038;
+      border: 2px solid #000;
+      padding: 12px 30px;
+      border-radius: 50px;
+      font-weight: 900;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      transition: opacity 0.2s;
+      margin-top: 10px;
+    }
+
+    .submit-btn:hover {
+      opacity: 0.85;
+    }
+
+    /* ==========================================
+       YELLOWBEE STYLE FOOTER & SOCIALS
+       ========================================== */
+    .yellowbee-footer {
+      background-color: #000;
+      color: #fff;
+      padding: 60px 50px 30px 50px;
+      border-top: 4px solid #f4f038;
+      position: relative;
+      z-index: 30;
+    }
+
+    .footer-inner {
+      max-width: 1300px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 30px;
+      border-bottom: 1px solid #333;
+      padding-bottom: 40px;
+    }
+
+    .footer-email {
+      color: #f4f038;
+      font-weight: 900;
+      font-size: 18px;
+      text-decoration: none;
+      letter-spacing: 1px;
+    }
+
+    .social-icons {
+      display: flex;
+      gap: 15px;
+    }
+
+    .social-icon-btn {
+      width: 45px;
+      height: 45px;
+      border: 2px solid #444;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .social-icon-btn:hover {
+      border-color: #f4f038;
+      color: #f4f038;
+      background: #111;
+    }
+
+    .footer-bottom-row {
+      max-width: 1300px;
+      margin: 30px auto 0 auto;
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #777;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    @media (max-width: 900px) {
+      .contact-wrapper {
+        grid-template-columns: 1fr;
+      }
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      .form-group.full {
+        grid-column: span 1;
+      }
+    }
+
+    /* Modern, aesthetic file doodles */
+    .aesthetic-doodle {
+      width: clamp(66px, 7.8vw, 104px);
+      height: clamp(72px, 8.5vw, 112px);
+      border: 2px solid #151515;
+      border-radius: 22px;
+      background: #fffdf6;
+      box-shadow: 5px 6px 0 #111, inset 0 0 0 5px color-mix(in srgb, var(--accent) 14%, white);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transform: rotate(-5deg);
+      animation: none;
+      padding: 10px;
+    }
+    .aesthetic-doodle:nth-of-type(even) { transform: rotate(5deg); }
+    .aesthetic-doodle svg { width: 43%; height: 52%; color: var(--accent); flex-shrink: 0; }
+    .aesthetic-doodle span { font-size: clamp(11px, 1.15vw, 14px); letter-spacing: 1.5px; }
+    .doodle-sparkle { position: absolute; top: -15px; right: -12px; font-size: 26px; color: var(--accent); font-style: normal; text-shadow: 1px 1px #111; }
+    @media (prefers-reduced-motion: reduce) { .char { animation: none; } }
+  </style>
+<style>
+.brand-logo {display:inline-flex; align-items:center; justify-content:center; background:#000; padding:8px 40px; border-radius:10px; line-height:0; height:56px;}
+.brand-logo img {display:block; width:auto; height:44px; object-fit: contain;}
+.footer-inner {flex-direction:column; justify-content:center; align-items:center; gap:22px; text-align:center;}
+.footer-brand {display:inline-block; line-height:0; max-width:90%;}
+.footer-brand img {width:clamp(230px, 33vw, 410px); height:auto; max-width:100%; display:block;}
+.social-icons {justify-content:center; flex-wrap:wrap;}
+@media(max-width:600px) {header{padding:20px 16px;} .brand-logo img{width:130px;} .nav-btns{gap:6px;} .btn{padding:8px 10px;font-size:10px;} .yellowbee-footer{padding:45px 20px 25px;} }
+</style><style>
+/* Reference-inspired three-column footer */
+.yellowbee-footer {padding:58px 50px 28px;}
+.yellowbee-footer .footer-inner {max-width:1300px; margin:0 auto; display:grid; grid-template-columns:minmax(220px,1fr) auto minmax(220px,1fr); align-items:center; justify-content:initial; gap:35px; text-align:left; padding-bottom:42px; border-bottom:1px solid #333;}
+.yellowbee-footer .footer-brand {display:block; width:100%; max-width:330px; line-height:0;}
+.yellowbee-footer .footer-brand img {width:100%; max-width:330px; height:auto; display:block;}
+.yellowbee-footer .footer-nav {display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:clamp(12px,1.7vw,27px);}
+.yellowbee-footer .footer-nav a {font-size:12px; font-weight:900; text-decoration:none; color:white; white-space:nowrap; letter-spacing:.35px;}
+.yellowbee-footer .footer-nav a:hover {color:#f4f038;}
+.yellowbee-footer .footer-right {justify-self:end; display:flex; flex-direction:column; align-items:flex-end; gap:18px;}
+.yellowbee-footer .footer-email {font-size:clamp(12px,1.2vw,17px); font-weight:900; color:#f4f038; text-decoration:none; letter-spacing:.3px; white-space:nowrap;}
+.yellowbee-footer .social-icons {display:flex; flex-wrap:wrap; justify-content:flex-end; gap:10px;}
+.yellowbee-footer .social-icon-btn {width:39px; height:39px;}
+.yellowbee-footer .footer-bottom-row {max-width:1300px; margin:24px auto 0; display:flex; justify-content:space-between; gap:20px; color:#858585; font-size:11px; letter-spacing:.6px;}
+@media(max-width:1050px){.yellowbee-footer .footer-inner {grid-template-columns:1fr 1fr; gap:28px;} .yellowbee-footer .footer-nav {grid-column:1/-1; grid-row:2;} .yellowbee-footer .footer-right {grid-column:2;grid-row:1;}}
+@media(max-width:650px){.yellowbee-footer{padding:44px 20px 25px;} .yellowbee-footer .footer-inner{grid-template-columns:1fr;justify-items:center;text-align:center;gap:28px;} .yellowbee-footer .footer-brand{max-width:270px;} .yellowbee-footer .footer-right{grid-column:1;grid-row:auto;justify-self:center;align-items:center;} .yellowbee-footer .footer-nav{grid-column:1;grid-row:auto;} .yellowbee-footer .social-icons{justify-content:center;} .yellowbee-footer .footer-bottom-row{flex-direction:column;align-items:center;text-align:center;gap:10px;}}
+</style><style>
+/* Footer refinement: smaller logo, no navigation, portfolio icon */
+.yellowbee-footer .footer-inner {
+  display:flex; justify-content:space-between; align-items:center;
+  gap:28px; text-align:left;
+}
+.yellowbee-footer .footer-brand {width:240px; max-width:42%; flex:0 1 240px;}
+.yellowbee-footer .footer-brand img {width:100%; max-width:240px; height:auto;}
+.yellowbee-footer .footer-right {margin-left:auto; align-items:flex-end;}
+@media(max-width:650px){
+ .yellowbee-footer .footer-inner {flex-direction:column; text-align:center; gap:24px;}
+ .yellowbee-footer .footer-brand {width:210px; max-width:80%; flex:auto;}
+ .yellowbee-footer .footer-brand img {max-width:210px;}
+ .yellowbee-footer .footer-right {margin:0; align-items:center;}
+}
+</style><style>
+/* Footer: left-aligned compact logo, right-aligned contact/socials */
+.yellowbee-footer .footer-inner {
+  display:flex !important;
+  flex-direction:row !important;
+  justify-content:space-between !important;
+  align-items:center !important;
+  text-align:left !important;
+  gap:32px;
+}
+.yellowbee-footer .footer-brand {
+  display:block; flex:0 0 auto !important;
+  width:185px !important; max-width:40% !important;
+  margin:0 !important;
+}
+.yellowbee-footer .footer-brand img {display:block; width:100% !important; max-width:185px !important; height:auto;}
+.yellowbee-footer .footer-right {
+  margin-left:auto !important;
+  display:flex; flex-direction:column; align-items:flex-end;
+  text-align:right;
+}
+.yellowbee-footer .social-icons {justify-content:flex-end;}
+@media(max-width:650px) {
+ .yellowbee-footer .footer-inner {flex-direction:column !important; text-align:center !important; gap:24px;}
+ .yellowbee-footer .footer-brand {max-width:75% !important; width:185px !important;}
+ .yellowbee-footer .footer-right {margin:0 !important; align-items:center; text-align:center;}
+ .yellowbee-footer .social-icons {justify-content:center;}
+}
+</style><style>
+/* FileVellum catalog additions — existing homepage styling untouched */
+.fv-tools-intro{text-align:center;padding:0 0 22px}.fv-eyebrow{font-size:12px;font-weight:900;letter-spacing:1.7px;margin-bottom:16px}.fv-tools-intro h1{font-size:clamp(32px,5vw,60px);font-weight:900;letter-spacing:-2px;line-height:1.08}.fv-tools-intro h1 span{background:#f4f038;padding:0 8px}.fv-tools-intro>p{margin:16px auto 0;max-width:640px;color:#555;font-size:15px;line-height:1.6;font-weight:600}.fv-search-wrap{display:flex;align-items:center;gap:13px;background:#fff;border:3px solid #000;border-radius:15px;box-shadow:6px 6px 0 #000;padding:8px 16px;max-width:770px;margin:32px auto 14px;text-align:left}.fv-search-wrap>i{font-size:20px}.fv-search-wrap input{flex:1;min-width:0;border:0;background:transparent;outline:0;padding:12px 0;font:600 15px Inter,sans-serif;color:#000;user-select:text}.fv-search-wrap input::placeholder{color:#777}.fv-search-wrap button{background:transparent;border:0;font-size:18px;cursor:pointer}.fv-search-wrap kbd{border:1px solid #bbb;padding:4px 9px;border-radius:6px;color:#777;font-size:12px}.fv-search-meta{max-width:770px;margin:0 auto;display:flex;justify-content:space-between;gap:12px;color:#666;font-size:12px;font-weight:700}.fv-category-pills{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;margin:27px auto 0}.fv-category-pills button{font:800 12px Inter,sans-serif;border:2px solid #000;background:#fff;border-radius:40px;padding:10px 14px;cursor:pointer;transition:.15s}.fv-category-pills button:hover,.fv-category-pills button.active{background:#000;color:#f4f038}.fv-tool-section{scroll-margin-top:24px}.fv-section-count{font:800 11px Inter,sans-serif;border:1px solid #222;border-radius:20px;padding:3px 8px;margin-left:7px}.fv-catalog-card{position:relative;min-height:150px}.fv-catalog-card p{margin-top:auto}.fv-coming{opacity:.76;cursor:default}.fv-coming:hover{transform:none;box-shadow:5px 5px 0 #000;background:#fff}.fv-soon-tag{position:absolute;top:17px;right:14px;background:#eee;border-radius:30px;padding:5px 8px;font-size:9px;font-weight:900;letter-spacing:.6px}.fv-no-results{padding:22px;font-weight:800}.fv-nav-search{display:inline-flex;align-items:center;gap:7px}@media(max-width:600px){.tools-main-section{padding:65px 18px}.fv-search-wrap{padding:5px 11px}.fv-search-wrap kbd{display:none}.fv-search-meta{font-size:10px}.fv-category-pills{justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;padding-bottom:8px}.fv-category-pills button{white-space:nowrap}.fv-tools-intro h1{letter-spacing:-1px}}
+
+.fv-catalog-card[hidden],.fv-tool-section[hidden],.fv-no-results[hidden],#fvSearchClear[hidden]{display:none!important}
+/* Category buttons: readable text on white background */
+#fvCategoryPills button { color: #000000 !important; background-color: #ffffff; opacity: 1; visibility: visible; }
+#fvCategoryPills button:hover, #fvCategoryPills button.active { color: #f4f038 !important; background-color: #000000 !important; }
+</style>
+<style id="filevellum-uniform-compact-cards">
+  /* Compact, consistent tool cards — visual-only adjustment */
+  .tools-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+    gap: 14px !important;
+    align-items: stretch;
+  }
+  .tool-card {
+    box-sizing: border-box;
+    height: 164px !important;
+    min-height: 164px !important;
+    max-height: 164px !important;
+    padding: 15px !important;
+    overflow: hidden;
+  }
+  .tool-icon {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px;
+    min-height: 36px;
+    font-size: 15px !important;
+    margin-bottom: 9px !important;
+  }
+  .tool-card h3 {
+    font-size: 14px !important;
+    line-height: 1.25;
+    margin: 0 0 5px !important;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+  .tool-card p {
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+  @media (max-width: 600px) {
+    .tools-grid {
+      grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)) !important;
+      gap: 11px !important;
+    }
+    .tool-card {
+      height: 158px !important;
+      min-height: 158px !important;
+      max-height: 158px !important;
+      padding: 12px !important;
+    }
+  }
+</style>
+
+
+<style id="filevellum-founder-preview">
+  .fv-founder-preview-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,260px));gap:14px;align-items:stretch}
+  .fv-founder-preview-card{height:164px!important;min-height:164px!important;max-height:164px!important;text-decoration:none!important;color:#000!important}
+  .fv-founder-preview-card h3{margin-bottom:5px!important}
+  .fv-founder-preview-link{display:inline-flex;align-items:center;gap:7px;margin-top:auto;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.35px}
+  .fv-founder-preview-card:hover .fv-founder-preview-link{color:#000}
+  @media(max-width:600px){.fv-founder-preview-grid{grid-template-columns:repeat(auto-fill,minmax(145px,1fr))}.fv-founder-preview-card{height:158px!important;min-height:158px!important;max-height:158px!important}}
+</style>
+
+<style>.fv-qr-card-link{color:inherit;text-decoration:none;display:block}.fv-qr-card-link .tool-card{height:100%}</style>
+
+<style id="filevellum-compact-footer-only">
+/* More compact footer spacing; preserves existing colors, layout and content */
+.yellowbee-footer { padding: 20px 50px 8px !important; }
+.yellowbee-footer .footer-inner { padding-bottom: 11px !important; gap: 11px !important; }
+.yellowbee-footer .footer-bottom-row { margin-top: 7px !important; }
+@media(max-width:650px) {
+  .yellowbee-footer { padding: 17px 20px 8px !important; }
+  .yellowbee-footer .footer-inner { gap: 11px !important; padding-bottom: 11px !important; }
+  .yellowbee-footer .footer-bottom-row { margin-top: 6px !important; }
+}
+</style>
+
+
+<style id="filevellum-footer-spacing-match">
+/* Footer spacing only: match the requested compact footer strip on all pages. */
+.yellowbee-footer { padding: 20px 50px 8px !important; }
+.yellowbee-footer .footer-inner { padding-bottom: 11px !important; gap: 11px !important; }
+.yellowbee-footer .footer-bottom-row { margin-top: 7px !important; }
+@media (max-width: 650px) {
+  .yellowbee-footer { padding: 17px 20px 8px !important; }
+  .yellowbee-footer .footer-inner { gap: 11px !important; padding-bottom: 11px !important; }
+  .yellowbee-footer .footer-bottom-row { margin-top: 6px !important; }
+}
+</style>
+
+<style id="filevellum-footer-spacing-fix-v2">
+/* Footer-only correction: consistent spacing and no yellow strip below footer. */
+html, body { min-height: 100%; }
+body { min-height: 100vh; display: flex; flex-direction: column; }
+.yellowbee-footer { margin-top: auto !important; flex-shrink: 0; box-sizing: border-box; }
+.yellowbee-footer .footer-inner { padding-bottom: 11px !important; gap: 11px !important; }
+.yellowbee-footer .footer-bottom-row { margin-top: 7px !important; }
+@media (max-width: 650px) {
+  .yellowbee-footer { padding: 17px 20px 8px !important; }
+  .yellowbee-footer .footer-inner { padding-bottom: 11px !important; gap: 11px !important; }
+  .yellowbee-footer .footer-bottom-row { margin-top: 6px !important; }
+}
+</style>
+
+
+<style id="filevellum-footer-reference-match">
+/* Footer reference match: compact logo, mono copyright type, and equal spacing on all pages. */
+.yellowbee-footer {
+  background: #000 !important;
+  color: #fff !important;
+  border-top: 0 !important;
+  padding: 18px 30px 0 !important;
+  box-sizing: border-box;
+  width: 100%;
+}
+.yellowbee-footer .footer-inner {
+  max-width: 1700px !important;
+  min-height: 82px;
+  margin: 0 auto !important;
+  padding: 0 0 14px !important;
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 24px !important;
+  border-bottom: 1px solid #333 !important;
+  box-sizing: border-box;
+}
+.yellowbee-footer .footer-brand {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  flex: 0 0 64px !important;
+  width: 64px !important;
+  max-width: 64px !important;
+  margin: 0 !important;
+  line-height: 0 !important;
+}
+.yellowbee-footer .footer-brand img {
+  display: block !important;
+  width: 64px !important;
+  max-width: 64px !important;
+  height: 54px !important;
+  max-height: 54px !important;
+  object-fit: contain !important;
+}
+.yellowbee-footer .footer-right {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-end !important;
+  justify-content: center !important;
+  gap: 14px !important;
+  margin: 0 0 0 auto !important;
+  text-align: right !important;
+}
+.yellowbee-footer .footer-email {
+  font-size: 16px !important;
+  letter-spacing: .3px !important;
+  font-weight: 900 !important;
+}
+.yellowbee-footer .social-icons {
+  display: flex !important;
+  justify-content: flex-end !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+}
+.yellowbee-footer .social-icon-btn {
+  width: 46px !important;
+  height: 46px !important;
+  box-sizing: border-box;
+}
+.yellowbee-footer .footer-bottom-row {
+  width: calc(100% + 60px) !important;
+  max-width: none !important;
+  margin: 0 -30px !important;
+  padding: 25px 30px !important;
+  min-height: 76px;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 20px !important;
+  box-sizing: border-box;
+  border-top: 1px solid #222 !important;
+  border-bottom: 1px solid #222 !important;
+  background: #000 !important;
+  color: #777 !important;
+  font-family: "Space Mono", monospace !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  line-height: 24px !important;
+  letter-spacing: .5px !important;
+  text-transform: uppercase !important;
+}
+.yellowbee-footer .footer-bottom-row span {
+  font-family: "Space Mono", monospace !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  letter-spacing: .5px !important;
+}
+@media (max-width: 650px) {
+  .yellowbee-footer { padding: 18px 20px 0 !important; }
+  .yellowbee-footer .footer-inner {
+    min-height: 0; padding-bottom: 16px !important;
+    flex-direction: column !important; gap: 18px !important;
+    justify-content: center !important; text-align: center !important;
+  }
+  .yellowbee-footer .footer-brand { flex-basis: 64px !important; }
+  .yellowbee-footer .footer-right { margin: 0 !important; align-items: center !important; text-align: center !important; }
+  .yellowbee-footer .social-icons { justify-content: center !important; }
+  .yellowbee-footer .footer-bottom-row {
+    width: calc(100% + 40px) !important; margin: 0 -20px !important;
+    padding: 20px !important; min-height: 76px;
+    flex-direction: column !important; gap: 8px !important;
+    text-align: center !important;
+  }
+}
+</style>
+
+
+<style id="filevellum-footer-line-above-content-final">
+/* Matching subtle separator directly above the logo and contact/social area. */
+.yellowbee-footer { border-top: 0 !important; }
+.yellowbee-footer .footer-inner {
+  border-top: 1px solid #333 !important;
+  padding-top: 25px !important;
+  box-sizing: border-box !important;
+}
+</style>
+</head>
+<body>
+<!-- ================= HERO SECTION (KINETIC TEXT) ================= -->
+<div class="scroll-container">
+<div class="hero-fixed">
+<!-- Navigation -->
+<header>
+<a aria-label="FileVellum Home" class="brand-logo" href="#"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="FileVellum logo"></a>
+<div class="nav-btns"><a class="btn btn-outline fv-nav-search" href="#tools"><i class="fa-solid fa-magnifying-glass"></i> Search</a>
+<a class="btn btn-outline" href="#tools">Explore Tools</a>
+<a class="btn btn-outline" href="/about-founders">About Founders</a>
+<a class="btn btn-solid" href="#contact">Contact Us</a>
+</div>
+</header>
+<!-- Marquee Track -->
+<div class="marquee-track" id="marqueeTrack">
+<!-- Group 1 -->
+<div class="marquee-group">
+<span class="word-text"><span class="char">T</span><span class="char">H</span><span class="char">E</span></span>
+<span class="word-text"><span class="char">U</span><span class="char">L</span><span class="char">T</span><span class="char">I</span><span class="char">M</span><span class="char">A</span><span class="char">T</span><span class="char">E</span></span>
+<div class="icon-box sketch-doodle"><svg aria-label="Megaphone doodle" viewbox="0 0 100 100"><path d="M18 43 Q13 44 14 55 Q15 65 25 64 L36 64 L43 83 Q47 88 55 83 L48 62 Q67 64 83 77 L83 24 Q62 42 34 42 Z M27 43 L27 64 M83 34 Q91 50 83 66 M88 18 L94 12 M91 50 L99 50 M88 82 L96 89"></path></svg></div>
+<span class="word-text"><span class="char">D</span><span class="char">I</span><span class="char">G</span><span class="char">I</span><span class="char">T</span><span class="char">A</span><span class="char">L</span></span>
+<div class="icon-box sketch-doodle"><svg aria-label="Film doodle" viewbox="0 0 100 100"><rect height="72" rx="8" width="60" x="20" y="14"></rect><path d="M35 15 V85 M65 15 V85 M36 39 H65 M36 62 H65 M24 28 H30 M24 48 H30 M24 69 H30 M70 28 H76 M70 48 H76 M70 69 H76"></path></svg></div>
+<span class="word-text"><span class="char">W</span><span class="char">O</span><span class="char">R</span><span class="char">K</span><span class="char">S</span><span class="char">P</span><span class="char">A</span><span class="char">C</span><span class="char">E</span></span>
+<div class="icon-box sketch-doodle"><svg aria-label="Sparkle doodle" viewbox="0 0 100 100"><path d="M50 10 Q55 42 87 50 Q55 56 50 90 Q43 56 12 50 Q44 43 50 10 Z M18 12 L27 22 M77 15 L69 25 M79 79 L88 88"></path></svg></div>
+<span class="word-text"><span class="char">F</span><span class="char">O</span><span class="char">R</span></span>
+<span class="word-text"><span class="char">A</span><span class="char">L</span><span class="char">L</span></span>
+<span class="word-text"><span class="char">Y</span><span class="char">O</span><span class="char">U</span><span class="char">R</span></span>
+<span class="word-text"><span class="char">F</span><span class="char">I</span><span class="char">L</span><span class="char">E</span><span class="char">S</span></span>
+<div aria-hidden="true" class="end-arrow" id="endArrow"><svg viewbox="0 0 140 150"><path d="M12 14 C100 16 120 48 112 128 M87 102 Q103 119 112 132 Q123 115 136 104"></path><path d="M75 16 l12 -5 M23 33 l-8 10"></path></svg></div>
+</div>
+</div>
+<div class="hero-footer-text">
+<p>Scroll down to access all 220+ browser utilities ↓</p>
+</div>
+</div>
+</div>
+<!-- ================= MAIN TOOLS GRID SECTION ================= -->
+<section class="tools-main-section" id="tools">
+<div class="tools-wrapper"><div class="fv-tools-intro"><h1>Every tool. <span>One place.</span></h1><p>Explore PDF, image, document, developer and everyday utilities — find exactly what you need.</p><div class="fv-search-wrap"><i class="fa-solid fa-magnifying-glass"></i><input aria-label="Search tools" autocomplete="off" id="fvToolSearch" placeholder="Search tools... e.g. PDF to Word, Background Remover" type="search"/><button aria-label="Clear search" hidden="" id="fvSearchClear" type="button"><i class="fa-solid fa-xmark"></i></button><kbd>/</kbd></div><div class="fv-search-meta"><span id="fvResultCount"></span><span>Browse by category or search by name</span></div><div class="fv-category-pills" id="fvCategoryPills"><button class="active" data-category="all" type="button">All tools</button><button data-category="Create PDF" type="button">Create PDF</button><button data-category="Convert PDF" type="button">Convert PDF</button><button data-category="Organize PDF" type="button">Organize PDF</button><button data-category="Edit &amp; Secure PDF" type="button">Edit &amp; Secure PDF</button><button data-category="Optimize &amp; OCR PDF" type="button">Optimize &amp; OCR PDF</button><button data-category="Image Editing" type="button">Image Editing</button><button data-category="Image Conversion" type="button">Image Conversion</button><button data-category="Document Conversion" type="button">Document Conversion</button><button data-category="ZIP &amp; Archives" type="button">ZIP &amp; Archives</button><button data-category="File Utilities" type="button">File Utilities</button><button data-category="QR &amp; Barcode" type="button">QR &amp; Barcode</button><button data-category="Text Utilities" type="button">Text Utilities</button><button data-category="Developer Tools" type="button">Developer Tools</button><button data-category="Image Inspection" type="button">Image Inspection</button><button data-category="Extra Utilities" type="button">Extra Utilities</button></div><p class="fv-no-results" hidden="" id="fvNoResults">No matching tools found. Try another search.</p></div><div class="section-block fv-tool-section" data-category="Create PDF"><div class="section-header"><h2><i class="fa-solid fa-file-arrow-up"></i> Create PDF</h2></div><div class="tools-grid"><a class="tool-card fv-catalog-card" data-name="word to pdf" href="/word-to-pdf"><div class="tool-icon"><i class="fa-solid fa-file-arrow-up"></i></div><h3>Word to PDF</h3><p>Convert Word files into PDF format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="excel to pdf" href="/excel-to-pdf"><div class="tool-icon"><i class="fa-solid fa-file-arrow-up"></i></div><h3>Excel to PDF</h3><p>Convert Excel files into PDF format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="powerpoint to pdf" href="/powerpoint-to-pdf"><div class="tool-icon"><i class="fa-solid fa-file-arrow-up"></i></div><h3>PowerPoint to PDF</h3><p>Convert PowerPoint files into PDF format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="jpg to pdf" href="/jpg-to-pdf"><div class="tool-icon"><i class="fa-solid fa-file-arrow-up"></i></div><h3>JPG to PDF</h3><p>Convert JPG files into PDF format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="png to pdf" href="/png-to-pdf"><div class="tool-icon"><i class="fa-solid fa-file-arrow-up"></i></div><h3>PNG to PDF</h3><p>Convert PNG files into PDF format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="html to pdf" href="/html-to-pdf"><div class="tool-icon"><i class="fa-solid fa-file-arrow-up"></i></div><h3>HTML to PDF</h3><p>Convert HTML files into PDF format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="text to pdf" href="/text-to-pdf"><div class="tool-icon"><i class="fa-solid fa-file-arrow-up"></i></div><h3>Text to PDF</h3><p>Convert Text files into PDF format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="images to pdf" href="/images-to-pdf"><div class="tool-icon"><i class="fa-solid fa-file-arrow-up"></i></div><h3>Images to PDF</h3><p>Convert Images files into PDF format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="epub to pdf" href="/epub-to-pdf"><div class="tool-icon"><i class="fa-solid fa-file-arrow-up"></i></div><h3>EPUB to PDF</h3><p>Convert EPUB files into PDF format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="tiff to pdf" href="/tiff-to-pdf"><div class="tool-icon"><i class="fa-solid fa-file-arrow-up"></i></div><h3>TIFF to PDF</h3><p>Convert TIFF files into PDF format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="svg to pdf" href="/svg-to-pdf"><div class="tool-icon"><i class="fa-solid fa-file-arrow-up"></i></div><h3>SVG to PDF</h3><p>Convert SVG files into PDF format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="markdown to pdf" href="/markdown-to-pdf"><div class="tool-icon"><i class="fa-solid fa-file-arrow-up"></i></div><h3>Markdown to PDF</h3><p>Convert Markdown files into PDF format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="csv to pdf" href="/csv-to-pdf"><div class="tool-icon"><i class="fa-solid fa-file-arrow-up"></i></div><h3>CSV to PDF</h3><p>Convert CSV files into PDF format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="webpage to pdf" href="/webpage-to-pdf"><div class="tool-icon"><i class="fa-solid fa-file-arrow-up"></i></div><h3>Webpage to PDF</h3><p>Convert Webpage files into PDF format with a simple, streamlined workflow.</p></a></div></div><div class="section-block fv-tool-section" data-category="Convert PDF"><div class="section-header"><h2><i class="fa-solid fa-file-arrow-down"></i> Convert PDF</h2></div><div class="tools-grid"><a class="tool-card fv-catalog-card" data-name="pdf to word" href="/pdf-to-word"><div class="tool-icon"><i class="fa-solid fa-file-arrow-down"></i></div><h3>PDF to Word</h3><p>Convert PDF files into Word format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="pdf to excel" href="/pdf-to-excel"><div class="tool-icon"><i class="fa-solid fa-file-arrow-down"></i></div><h3>PDF to Excel</h3><p>Convert PDF files into Excel format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="pdf to powerpoint" href="/pdf-to-powerpoint"><div class="tool-icon"><i class="fa-solid fa-file-arrow-down"></i></div><h3>PDF to PowerPoint</h3><p>Convert PDF files into PowerPoint format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="pdf to jpg" href="/pdf-to-jpg"><div class="tool-icon"><i class="fa-solid fa-file-arrow-down"></i></div><h3>PDF to JPG</h3><p>Convert PDF files into JPG format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="pdf to png" href="/pdf-to-png"><div class="tool-icon"><i class="fa-solid fa-file-arrow-down"></i></div><h3>PDF to PNG</h3><p>Convert PDF files into PNG format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="pdf to text" href="/pdf-to-text"><div class="tool-icon"><i class="fa-solid fa-file-arrow-down"></i></div><h3>PDF to Text</h3><p>Convert PDF files into Text format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="pdf to html" href="/pdf-to-html"><div class="tool-icon"><i class="fa-solid fa-file-arrow-down"></i></div><h3>PDF to HTML</h3><p>Convert PDF files into HTML format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="pdf to json" href="/pdf-to-json"><div class="tool-icon"><i class="fa-solid fa-file-arrow-down"></i></div><h3>PDF to JSON</h3><p>Convert PDF files into JSON format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="pdf to svg" href="/pdf-to-svg"><div class="tool-icon"><i class="fa-solid fa-file-arrow-down"></i></div><h3>PDF to SVG</h3><p>Convert PDF files into SVG format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="pdf to tiff" href="/pdf-to-tiff"><div class="tool-icon"><i class="fa-solid fa-file-arrow-down"></i></div><h3>PDF to TIFF</h3><p>Convert PDF files into TIFF format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="pdf to epub" href="/pdf-to-epub"><div class="tool-icon"><i class="fa-solid fa-file-arrow-down"></i></div><h3>PDF to EPUB</h3><p>Convert PDF files into EPUB format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="pdf to images zip" href="/pdf-to-images-zip"><div class="tool-icon"><i class="fa-solid fa-file-arrow-down"></i></div><h3>PDF to Images ZIP</h3><p>Convert PDF files into Images ZIP format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="pdf to markdown" href="/pdf-to-markdown"><div class="tool-icon"><i class="fa-solid fa-file-arrow-down"></i></div><h3>PDF to Markdown</h3><p>Convert PDF files into Markdown format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="pdf to csv" href="/pdf-to-csv"><div class="tool-icon"><i class="fa-solid fa-file-arrow-down"></i></div><h3>PDF to CSV</h3><p>Convert PDF files into CSV format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="pdf to pdf/a" href="/pdf-to-pdfa"><div class="tool-icon"><i class="fa-solid fa-file-arrow-down"></i></div><h3>PDF to PDF/A</h3><p>Convert PDF files into PDF/A format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="pdf/a to pdf" href="/pdfa-to-pdf"><div class="tool-icon"><i class="fa-solid fa-file-arrow-down"></i></div><h3>PDF/A to PDF</h3><p>Convert PDF/A files into PDF format with a simple, streamlined workflow.</p></a></div></div><div class="section-block fv-tool-section" data-category="Organize PDF"><div class="section-header"><h2><i class="fa-solid fa-folder-tree"></i> Organize PDF</h2></div><div class="tools-grid"><a class="tool-card fv-catalog-card" data-name="merge pdf" href="/merge-pdf"><div class="tool-icon"><i class="fa-solid fa-folder-tree"></i></div><h3>Merge PDF</h3><p>Combine multiple files into one organized result, ready to save or share.</p></a><a class="tool-card fv-catalog-card" data-name="split pdf" href="/split-pdf"><div class="tool-icon"><i class="fa-solid fa-folder-tree"></i></div><h3>Split PDF</h3><p>Separate a document into smaller parts and keep only what you need.</p></a><a class="tool-card fv-catalog-card" data-name="organize pdf pages" href="/organize-pdf"><div class="tool-icon"><i class="fa-solid fa-folder-tree"></i></div><h3>Organize PDF Pages</h3><p>Rearrange pages into the order that works best for you.</p></a><a class="tool-card fv-catalog-card" data-name="remove pdf pages" href="/remove-pdf-pages"><div class="tool-icon"><i class="fa-solid fa-folder-tree"></i></div><h3>Remove PDF Pages</h3><p>Remove pdf pages quickly and keep your files clean and organized.</p></a><a class="tool-card fv-catalog-card" data-name="extract pdf pages" href="/extract-pdf-pages"><div class="tool-icon"><i class="fa-solid fa-folder-tree"></i></div><h3>Extract PDF Pages</h3><p>Pull out the content you need and save it separately.</p></a><a class="tool-card fv-catalog-card" data-name="rotate pdf" href="/rotate-pdf"><div class="tool-icon"><i class="fa-solid fa-folder-tree"></i></div><h3>Rotate PDF</h3><p>Turn pages or images to the correct orientation before downloading.</p></a><a class="tool-card fv-catalog-card" data-name="crop pdf" href="/crop-pdf"><div class="tool-icon"><i class="fa-solid fa-folder-tree"></i></div><h3>Crop PDF</h3><p>Trim unwanted edges and focus on the content that matters.</p></a><a class="tool-card fv-catalog-card" data-name="resize pdf pages" href="/resize-pdf-pages"><div class="tool-icon"><i class="fa-solid fa-folder-tree"></i></div><h3>Resize PDF Pages</h3><p>Adjust dimensions to fit your layout, screen or print needs.</p></a><a class="tool-card fv-catalog-card" data-name="add pdf page numbers" href="/add-pdf-page-numbers"><div class="tool-icon"><i class="fa-solid fa-folder-tree"></i></div><h3>Add PDF Page Numbers</h3><p>Add pdf page numbers to your files with simple, flexible controls.</p></a><a class="tool-card fv-catalog-card" data-name="reverse pdf pages" href="/reverse-pdf-pages"><div class="tool-icon"><i class="fa-solid fa-folder-tree"></i></div><h3>Reverse PDF Pages</h3><p>Reverse the order of pages in just a few steps.</p></a><a class="tool-card fv-catalog-card" data-name="duplicate pdf pages" href="/duplicate-pdf-pages"><div class="tool-icon"><i class="fa-solid fa-folder-tree"></i></div><h3>Duplicate PDF Pages</h3><p>Make copies of selected pages without recreating them.</p></a><a class="tool-card fv-catalog-card" data-name="reorder pdf pages" href="/reorder-pdf-pages"><div class="tool-icon"><i class="fa-solid fa-folder-tree"></i></div><h3>Reorder PDF Pages</h3><p>Move pages into a new sequence for a better document flow.</p></a><a class="tool-card fv-catalog-card" data-name="insert pdf pages" href="/insert-pdf-pages"><div class="tool-icon"><i class="fa-solid fa-folder-tree"></i></div><h3>Insert PDF Pages</h3><p>Insert new pages exactly where you need them.</p></a><a class="tool-card fv-catalog-card" data-name="replace pdf pages" href="/replace-pdf-pages"><div class="tool-icon"><i class="fa-solid fa-folder-tree"></i></div><h3>Replace PDF Pages</h3><p>Swap selected pages with updated content in your document.</p></a><a class="tool-card fv-catalog-card" data-name="pdf booklet maker" href="/pdf-booklet-maker"><div class="tool-icon"><i class="fa-solid fa-folder-tree"></i></div><h3>PDF Booklet Maker</h3><p>Arrange PDF pages into a print-ready booklet layout for easy folding.</p></a><a class="tool-card fv-catalog-card" data-name="remove blank pdf pages" href="/remove-blank-pdf-pages"><div class="tool-icon"><i class="fa-solid fa-folder-tree"></i></div><h3>Remove Blank PDF Pages</h3><p>Remove blank pdf pages quickly and keep your files clean and organized.</p></a></div></div><div class="section-block fv-tool-section" data-category="Edit &amp; Secure PDF"><div class="section-header"><h2><i class="fa-solid fa-shield-halved"></i> Edit &amp; Secure PDF</h2></div><div class="tools-grid"><a class="tool-card fv-catalog-card" data-name="sign pdf" href="/sign-pdf"><div class="tool-icon"><i class="fa-solid fa-shield-halved"></i></div><h3>Sign PDF</h3><p>Add your signature to documents and prepare them for sharing.</p></a><a class="tool-card fv-catalog-card" data-name="watermark pdf" href="/watermark"><div class="tool-icon"><i class="fa-solid fa-shield-halved"></i></div><h3>Watermark PDF</h3><p>Place a custom watermark on files to identify or protect your work.</p></a><a class="tool-card fv-catalog-card" data-name="protect pdf" href="/protect-pdf"><div class="tool-icon"><i class="fa-solid fa-shield-halved"></i></div><h3>Protect PDF</h3><p>Secure your document with a password for safer sharing.</p></a><a class="tool-card fv-catalog-card" data-name="unlock pdf" href="/unlock-pdf"><div class="tool-icon"><i class="fa-solid fa-shield-halved"></i></div><h3>Unlock PDF</h3><p>Open a password-protected document using its existing password.</p></a><a class="tool-card fv-catalog-card" data-name="edit pdf metadata" href="/edit-secure/edit-pdf-metadata"><div class="tool-icon"><i class="fa-solid fa-shield-halved"></i></div><h3>Edit PDF Metadata</h3><p>Update PDF properties such as title, author and subject.</p></a><a class="tool-card fv-catalog-card" data-name="remove pdf metadata" href="/edit-secure/remove-pdf-metadata"><div class="tool-icon"><i class="fa-solid fa-shield-halved"></i></div><h3>Remove PDF Metadata</h3><p>Clear document properties that you do not want to share.</p></a><a class="tool-card fv-catalog-card" data-name="add pdf header &amp; footer" href="/edit-secure/add-pdf-header-footer"><div class="tool-icon"><i class="fa-solid fa-shield-halved"></i></div><h3>Add PDF Header &amp; Footer</h3><p>Add pdf header &amp; footer to your files with simple, flexible controls.</p></a><a class="tool-card fv-catalog-card" data-name="add text to pdf" href="/edit-secure/add-text-to-pdf"><div class="tool-icon"><i class="fa-solid fa-shield-halved"></i></div><h3>Add Text to PDF</h3><p>Convert Add Text files into PDF format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="add image to pdf" href="/edit-secure/add-image-to-pdf"><div class="tool-icon"><i class="fa-solid fa-shield-halved"></i></div><h3>Add Image to PDF</h3><p>Convert Add Image files into PDF format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="redact pdf" href="/edit-secure/redact-pdf"><div class="tool-icon"><i class="fa-solid fa-shield-halved"></i></div><h3>Redact PDF</h3><p>Permanently cover sensitive information before sharing your documents.</p></a><a class="tool-card fv-catalog-card" data-name="pdf form filler" href="/edit-secure/pdf-form-filler"><div class="tool-icon"><i class="fa-solid fa-shield-halved"></i></div><h3>PDF Form Filler</h3><p>Fill in PDF form fields neatly without printing the document.</p></a><a class="tool-card fv-catalog-card" data-name="pdf form creator" href="/edit-secure/pdf-form-creator"><div class="tool-icon"><i class="fa-solid fa-shield-halved"></i></div><h3>PDF Form Creator</h3><p>Create fillable fields to collect information directly inside PDFs.</p></a><a class="tool-card fv-catalog-card" data-name="flatten pdf" href="/edit-secure/flatten-pdf"><div class="tool-icon"><i class="fa-solid fa-shield-halved"></i></div><h3>Flatten PDF</h3><p>Turn annotations and form content into a fixed, shareable PDF.</p></a><a class="tool-card fv-catalog-card" data-name="compare pdf files" href="/edit-secure/compare-pdf-files"><div class="tool-icon"><i class="fa-solid fa-shield-halved"></i></div><h3>Compare PDF Files</h3><p>Spot differences between two PDF documents more easily.</p></a><a class="tool-card fv-catalog-card" data-name="pdf repair" href="/edit-secure/pdf-repair"><div class="tool-icon"><i class="fa-solid fa-shield-halved"></i></div><h3>PDF Repair</h3><p>Try to recover readable content from damaged or problematic PDF files.</p></a><a class="tool-card fv-catalog-card" data-name="pdf password checker" href="/edit-secure/pdf-password-checker"><div class="tool-icon"><i class="fa-solid fa-shield-halved"></i></div><h3>PDF Password Checker</h3><p>Check whether a PDF is password-protected before you work with it.</p></a><a class="tool-card fv-catalog-card" data-name="pdf permissions viewer" href="/edit-secure/pdf-permissions-viewer"><div class="tool-icon"><i class="fa-solid fa-shield-halved"></i></div><h3>PDF Permissions Viewer</h3><p>Inspect document permissions such as printing, copying and editing.</p></a><a class="tool-card fv-catalog-card" data-name="pdf attachment extractor" href="/edit-secure/pdf-attachment-extractor"><div class="tool-icon"><i class="fa-solid fa-shield-halved"></i></div><h3>PDF Attachment Extractor</h3><p>Find and extract files attached inside a PDF document.</p></a></div></div><div class="section-block fv-tool-section" data-category="Optimize &amp; OCR PDF"><div class="section-header"><h2><i class="fa-solid fa-wand-magic-sparkles"></i> Optimize &amp; OCR PDF</h2></div><div class="tools-grid"><a class="tool-card fv-catalog-card" data-name="compress pdf" href="/compress-file"><div class="tool-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div><h3>Compress PDF</h3><p>Reduce file size to make storing and sharing easier.</p></a><a class="tool-card fv-catalog-card" data-name="grayscale pdf" href="/grayscale-pdf"><div class="tool-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div><h3>Grayscale PDF</h3><p>Convert colorful content to clean grayscale for simple printing.</p></a><a class="tool-card fv-catalog-card" data-name="ocr pdf" href="/ocr-pdf"><div class="tool-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div><h3>OCR PDF</h3><p>Recognize printed text in scanned PDF pages and make it usable.</p></a><a class="tool-card fv-catalog-card" data-name="make pdf searchable" href="/make-pdf-searchable"><div class="tool-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div><h3>Make PDF Searchable</h3><p>Add searchable text to scanned PDF pages while retaining their appearance.</p></a><a class="tool-card fv-catalog-card" data-name="optimize pdf images" href="/optimize-pdf-images"><div class="tool-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div><h3>Optimize PDF Images</h3><p>Use Optimize PDF Images to complete everyday file and content tasks in fewer steps.</p></a><a class="tool-card fv-catalog-card" data-name="pdf file size analyzer" href="/pdf-file-size-analyzer"><div class="tool-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div><h3>PDF File Size Analyzer</h3><p>Explore what contributes to your PDF file size and spot optimization opportunities.</p></a><a class="tool-card fv-catalog-card" data-name="pdf page size checker" href="/pdf-page-size-checker"><div class="tool-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div><h3>PDF Page Size Checker</h3><p>Inspect PDF page dimensions and identify mixed page sizes quickly.</p></a><a class="tool-card fv-catalog-card" data-name="pdf font inspector" href="/pdf-font-inspector"><div class="tool-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div><h3>PDF Font Inspector</h3><p>Discover the fonts used in your PDF documents for easier review.</p></a><a class="tool-card fv-catalog-card" data-name="pdf color converter" href="/pdf-color-converter"><div class="tool-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div><h3>PDF Color Converter</h3><p>Handle color converter tasks in a straightforward PDF workspace.</p></a><a class="tool-card fv-catalog-card" data-name="pdf image extractor" href="/pdf-image-extractor"><div class="tool-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div><h3>PDF Image Extractor</h3><p>Save embedded images from PDF pages for reuse in other projects.</p></a></div></div><div class="section-block fv-tool-section" data-category="Image Editing"><div class="section-header"><h2><i class="fa-solid fa-image"></i> Image Editing</h2></div><div class="tools-grid"><a aria-label="Open Background Remover" class="tool-card fv-catalog-card" data-name="background remover" href="/remove-bg" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-image"></i></div><h3>Background Remover</h3><p>Remove distracting backgrounds from your photos and create clean, transparent images.</p></a><a aria-label="Open Image Editor" class="tool-card fv-catalog-card" data-name="image editor" href="/edit-image" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-image"></i></div><h3>Image Editor</h3><p>Fine-tune your pictures with easy editing controls for a polished final result.</p></a><a aria-label="Open Image Compressor" class="tool-card fv-catalog-card" data-name="image compressor" href="/image-tool/image-compressor" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-image"></i></div><h3>Image Compressor</h3><p>Work with image compressor using a clean, easy-to-use tool.</p></a><a aria-label="Open Image Resizer" class="tool-card fv-catalog-card" data-name="image resizer" href="/image-tool/image-resizer" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-image"></i></div><h3>Image Resizer</h3><p>Work with image resizer using a clean, easy-to-use tool.</p></a><a aria-label="Open Image Cropper" class="tool-card fv-catalog-card" data-name="image cropper" href="/image-tool/image-cropper" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-image"></i></div><h3>Image Cropper</h3><p>Work with image cropper using a clean, easy-to-use tool.</p></a><a aria-label="Open Image Rotator" class="tool-card fv-catalog-card" data-name="image rotator" href="/image-tool/image-rotator" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-image"></i></div><h3>Image Rotator</h3><p>Work with image rotator using a clean, easy-to-use tool.</p></a><a aria-label="Open Image Flipper" class="tool-card fv-catalog-card" data-name="image flipper" href="/image-tool/image-flipper" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-image"></i></div><h3>Image Flipper</h3><p>Work with image flipper using a clean, easy-to-use tool.</p></a><a aria-label="Open Image Watermark" class="tool-card fv-catalog-card" data-name="image watermark" href="/image-tool/image-watermark" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-image"></i></div><h3>Image Watermark</h3><p>Work with image watermark using a clean, easy-to-use tool.</p></a><a aria-label="Open Passport Photo Maker" class="tool-card fv-catalog-card" data-name="passport photo maker" href="/image-tool/passport-photo-maker" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-image"></i></div><h3>Passport Photo Maker</h3><p>Prepare passport-style photos with the right framing and clean presentation.</p></a><a aria-label="Open Blur Image" class="tool-card fv-catalog-card" data-name="blur image" href="/image-tool/blur-image" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-image"></i></div><h3>Blur Image</h3><p>Soften selected image details for a smoother look.</p></a><a aria-label="Open Sharpen Image" class="tool-card fv-catalog-card" data-name="sharpen image" href="/image-tool/sharpen-image" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-image"></i></div><h3>Sharpen Image</h3><p>Improve the apparent clarity of image details and edges.</p></a><a aria-label="Open Image Color Filters" class="tool-card fv-catalog-card" data-name="image color filters" href="/image-tool/image-filters" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-image"></i></div><h3>Image Color Filters</h3><p>Work with image color filters using a clean, easy-to-use tool.</p></a><a aria-label="Open Image to Text OCR" class="tool-card fv-catalog-card" data-name="image to text ocr" href="/image-tool/image-to-text" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-image"></i></div><h3>Image to Text OCR</h3><p>Recognize text in pictures and turn it into editable, copyable content.</p></a><a aria-label="Open Image Metadata Viewer" class="tool-card fv-catalog-card" data-name="image metadata viewer" href="/image-tool/image-metadata-viewer" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-image"></i></div><h3>Image Metadata Viewer</h3><p>Inspect embedded image information such as dimensions and camera details.</p></a><a aria-label="Open Remove Image Metadata" class="tool-card fv-catalog-card" data-name="remove image metadata" href="/image-tool/remove-image-metadata" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-image"></i></div><h3>Remove Image Metadata</h3><p>Strip embedded metadata from images before sharing them.</p></a><a aria-label="Open Image Background Color Changer" class="tool-card fv-catalog-card" data-name="image background color changer" href="/image-tool/image-background-changer" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-image"></i></div><h3>Image Background Color Changer</h3><p>Work with image background color changer using a clean, easy-to-use tool.</p></a><a aria-label="Open Image Border Maker" class="tool-card fv-catalog-card" data-name="image border maker" href="/image-tool/image-border-maker" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-image"></i></div><h3>Image Border Maker</h3><p>Work with image border maker using a clean, easy-to-use tool.</p></a><a aria-label="Open Image Collage Maker" class="tool-card fv-catalog-card" data-name="image collage maker" href="/image-tool/image-collage-maker" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-image"></i></div><h3>Image Collage Maker</h3><p>Work with image collage maker using a clean, easy-to-use tool.</p></a><a aria-label="Open Image Upscaler" class="tool-card fv-catalog-card" data-name="image upscaler" href="/image-tool/image-upscaler" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-image"></i></div><h3>Image Upscaler</h3><p>Work with image upscaler using a clean, easy-to-use tool.</p></a><a aria-label="Open Image Color Palette Extractor" class="tool-card fv-catalog-card" data-name="image color palette extractor" href="/image-tool/image-color-palette" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-image"></i></div><h3>Image Color Palette Extractor</h3><p>Discover the dominant colors in a photo and copy their values.</p></a></div></div><div class="section-block fv-tool-section" data-category="Image Conversion"><div class="section-header"><h2><i class="fa-solid fa-images"></i> Image Conversion</h2></div><div class="tools-grid"><a aria-label="Open JPG to PNG" class="tool-card fv-catalog-card" data-name="jpg to png" href="/image-convert/jpg-to-png" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-images"></i></div><h3>JPG to PNG</h3><p>Convert JPG files into PNG format with a simple, streamlined workflow.</p></a><a aria-label="Open PNG to JPG" class="tool-card fv-catalog-card" data-name="png to jpg" href="/image-convert/png-to-jpg" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-images"></i></div><h3>PNG to JPG</h3><p>Convert PNG files into JPG format with a simple, streamlined workflow.</p></a><a aria-label="Open Images to WebP" class="tool-card fv-catalog-card" data-name="images to webp" href="/image-convert/images-to-webp" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-images"></i></div><h3>Images to WebP</h3><p>Convert Images files into WebP format with a simple, streamlined workflow.</p></a><a aria-label="Open WebP to JPG" class="tool-card fv-catalog-card" data-name="webp to jpg" href="/image-convert/webp-to-jpg" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-images"></i></div><h3>WebP to JPG</h3><p>Convert WebP files into JPG format with a simple, streamlined workflow.</p></a><a aria-label="Open WebP to PNG" class="tool-card fv-catalog-card" data-name="webp to png" href="/image-convert/webp-to-png" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-images"></i></div><h3>WebP to PNG</h3><p>Convert WebP files into PNG format with a simple, streamlined workflow.</p></a><a aria-label="Open SVG to PNG" class="tool-card fv-catalog-card" data-name="svg to png" href="/image-convert/svg-to-png" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-images"></i></div><h3>SVG to PNG</h3><p>Convert SVG files into PNG format with a simple, streamlined workflow.</p></a><a aria-label="Open PNG to SVG" class="tool-card fv-catalog-card" data-name="png to svg" href="/image-convert/png-to-svg" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-images"></i></div><h3>PNG to SVG</h3><p>Convert PNG files into SVG format with a simple, streamlined workflow.</p></a><a aria-label="Open HEIC to JPG" class="tool-card fv-catalog-card" data-name="heic to jpg" href="/image-convert/heic-to-jpg" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-images"></i></div><h3>HEIC to JPG</h3><p>Convert HEIC files into JPG format with a simple, streamlined workflow.</p></a><a aria-label="Open Image to Base64" class="tool-card fv-catalog-card" data-name="image to base64" href="/image-convert/image-to-base64" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-images"></i></div><h3>Image to Base64</h3><p>Convert Image files into Base64 format with a simple, streamlined workflow.</p></a><a aria-label="Open Base64 to Image" class="tool-card fv-catalog-card" data-name="base64 to image" href="/image-convert/base64-to-image" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-images"></i></div><h3>Base64 to Image</h3><p>Convert Base64 files into Image format with a simple, streamlined workflow.</p></a><a aria-label="Open GIF to JPG" class="tool-card fv-catalog-card" data-name="gif to jpg" href="/image-convert/gif-to-jpg" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-images"></i></div><h3>GIF to JPG</h3><p>Convert GIF files into JPG format with a simple, streamlined workflow.</p></a><a aria-label="Open GIF Maker" class="tool-card fv-catalog-card" data-name="gif maker" href="/image-convert/gif-maker" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-images"></i></div><h3>GIF Maker</h3><p>Use GIF Maker to complete everyday file and content tasks in fewer steps.</p></a><a aria-label="Open AVIF to JPG" class="tool-card fv-catalog-card" data-name="avif to jpg" href="/image-convert/avif-to-jpg" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-images"></i></div><h3>AVIF to JPG</h3><p>Convert AVIF files into JPG format with a simple, streamlined workflow.</p></a><a aria-label="Open JPG to AVIF" class="tool-card fv-catalog-card" data-name="jpg to avif" href="/image-convert/jpg-to-avif" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-images"></i></div><h3>JPG to AVIF</h3><p>Convert JPG files into AVIF format with a simple, streamlined workflow.</p></a><a aria-label="Open WebP to AVIF" class="tool-card fv-catalog-card" data-name="webp to avif" href="/image-convert/webp-to-avif" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-images"></i></div><h3>WebP to AVIF</h3><p>Convert WebP files into AVIF format with a simple, streamlined workflow.</p></a><a aria-label="Open AVIF to PNG" class="tool-card fv-catalog-card" data-name="avif to png" href="/image-convert/avif-to-png" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-images"></i></div><h3>AVIF to PNG</h3><p>Convert AVIF files into PNG format with a simple, streamlined workflow.</p></a><a aria-label="Open Image to ICO" class="tool-card fv-catalog-card" data-name="image to ico" href="/image-convert/image-to-ico" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-images"></i></div><h3>Image to ICO</h3><p>Convert Image files into ICO format with a simple, streamlined workflow.</p></a><a aria-label="Open ICO to PNG" class="tool-card fv-catalog-card" data-name="ico to png" href="/image-convert/ico-to-png" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-images"></i></div><h3>ICO to PNG</h3><p>Convert ICO files into PNG format with a simple, streamlined workflow.</p></a><a aria-label="Open Favicon Generator" class="tool-card fv-catalog-card" data-name="favicon generator" href="/image-convert/favicon-generator" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-images"></i></div><h3>Favicon Generator</h3><p>Use Favicon Generator to complete everyday file and content tasks in fewer steps.</p></a><a aria-label="Open BMP to PNG" class="tool-card fv-catalog-card" data-name="bmp to png" href="/image-convert/bmp-to-png" role="link" tabindex="0"><div class="tool-icon"><i class="fa-solid fa-images"></i></div><h3>BMP to PNG</h3><p>Convert BMP files into PNG format with a simple, streamlined workflow.</p></a></div></div><div class="section-block fv-tool-section" data-category="Document Conversion"><div class="section-header"><h2><i class="fa-solid fa-file-lines"></i> Document Conversion</h2></div><div class="tools-grid"><a class="tool-card fv-catalog-card" data-name="docx to txt" href="/document-convert/docx-to-txt"><div class="tool-icon"><i class="fa-solid fa-file-lines"></i></div><h3>DOCX to TXT</h3><p>Convert DOCX files into TXT format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="txt to docx" href="/document-convert/txt-to-docx"><div class="tool-icon"><i class="fa-solid fa-file-lines"></i></div><h3>TXT to DOCX</h3><p>Convert TXT files into DOCX format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="docx to html" href="/document-convert/docx-to-html"><div class="tool-icon"><i class="fa-solid fa-file-lines"></i></div><h3>DOCX to HTML</h3><p>Convert DOCX files into HTML format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="html to docx" href="/document-convert/html-to-docx"><div class="tool-icon"><i class="fa-solid fa-file-lines"></i></div><h3>HTML to DOCX</h3><p>Convert HTML files into DOCX format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="csv to excel" href="/document-convert/csv-to-excel"><div class="tool-icon"><i class="fa-solid fa-file-lines"></i></div><h3>CSV to Excel</h3><p>Convert CSV files into Excel format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="excel to csv" href="/document-convert/excel-to-csv"><div class="tool-icon"><i class="fa-solid fa-file-lines"></i></div><h3>Excel to CSV</h3><p>Convert Excel files into CSV format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="json to csv" href="/document-convert/json-to-csv"><div class="tool-icon"><i class="fa-solid fa-file-lines"></i></div><h3>JSON to CSV</h3><p>Convert JSON files into CSV format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="csv to json" href="/document-convert/csv-to-json"><div class="tool-icon"><i class="fa-solid fa-file-lines"></i></div><h3>CSV to JSON</h3><p>Convert CSV files into JSON format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="xml to json" href="/document-convert/xml-to-json"><div class="tool-icon"><i class="fa-solid fa-file-lines"></i></div><h3>XML to JSON</h3><p>Convert XML files into JSON format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="json to xml" href="/document-convert/json-to-xml"><div class="tool-icon"><i class="fa-solid fa-file-lines"></i></div><h3>JSON to XML</h3><p>Convert JSON files into XML format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="rtf to docx" href="/document-convert/rtf-to-docx"><div class="tool-icon"><i class="fa-solid fa-file-lines"></i></div><h3>RTF to DOCX</h3><p>Convert RTF files into DOCX format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="docx to rtf" href="/document-convert/docx-to-rtf"><div class="tool-icon"><i class="fa-solid fa-file-lines"></i></div><h3>DOCX to RTF</h3><p>Convert DOCX files into RTF format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="odt to docx" href="/document-convert/odt-to-docx"><div class="tool-icon"><i class="fa-solid fa-file-lines"></i></div><h3>ODT to DOCX</h3><p>Convert ODT files into DOCX format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="docx to odt" href="/document-convert/docx-to-odt"><div class="tool-icon"><i class="fa-solid fa-file-lines"></i></div><h3>DOCX to ODT</h3><p>Convert DOCX files into ODT format with a simple, streamlined workflow.</p></a></div></div><div class="section-block fv-tool-section" data-category="ZIP &amp; Archives"><div class="section-header"><h2><i class="fa-solid fa-file-zipper"></i> ZIP &amp; Archives</h2></div><div class="tools-grid"><a class="tool-card fv-catalog-card" data-name="zip compressor" href="/archive-tool/compress-files-to-zip"><div class="tool-icon"><i class="fa-solid fa-file-zipper"></i></div><h3>ZIP Compressor</h3><p>Bundle multiple files into a compressed ZIP archive.</p></a><a class="tool-card fv-catalog-card" data-name="extract zip" href="/archive-tool/extract-zip-archive"><div class="tool-icon"><i class="fa-solid fa-file-zipper"></i></div><h3>Extract ZIP</h3><p>Extract a ZIP archive and download its contents.</p></a><a class="tool-card fv-catalog-card" data-name="create zip archive" href="/archive-tool/create-zip-archive"><div class="tool-icon"><i class="fa-solid fa-file-zipper"></i></div><h3>Create ZIP Archive</h3><p>Create a ZIP archive from selected files.</p></a><a class="tool-card fv-catalog-card" data-name="zip file viewer" href="/archive-tool/zip-file-information"><div class="tool-icon"><i class="fa-solid fa-file-zipper"></i></div><h3>ZIP File Viewer</h3><p>Inspect ZIP entries, sizes and archive details.</p></a><div class="tool-card fv-catalog-card" data-name="rar extractor"><div class="tool-icon"><i class="fa-solid fa-file-zipper"></i></div><h3>RAR Extractor</h3><p>Use RAR Extractor to complete everyday file and content tasks in fewer steps.</p></div><div class="tool-card fv-catalog-card" data-name="7z extractor"><div class="tool-icon"><i class="fa-solid fa-file-zipper"></i></div><h3>7Z Extractor</h3><p>Use 7Z Extractor to complete everyday file and content tasks in fewer steps.</p></div><a class="tool-card fv-catalog-card" data-name="tar extractor" href="/archive-tool/extract-tar-archive"><div class="tool-icon"><i class="fa-solid fa-file-zipper"></i></div><h3>TAR Extractor</h3><p>Extract a TAR archive safely.</p></a><a class="tool-card fv-catalog-card" data-name="tar to zip" href="/archive-tool/tar-to-zip"><div class="tool-icon"><i class="fa-solid fa-file-zipper"></i></div><h3>TAR to ZIP</h3><p>Convert TAR archives into ZIP format.</p></a><a class="tool-card fv-catalog-card" data-name="zip to tar" href="/archive-tool/zip-to-tar"><div class="tool-icon"><i class="fa-solid fa-file-zipper"></i></div><h3>ZIP to TAR</h3><p>Convert ZIP archives into TAR format.</p></a><a class="tool-card fv-catalog-card" data-name="file splitter" href="/archive-tool/split-large-files-into-parts"><div class="tool-icon"><i class="fa-solid fa-file-zipper"></i></div><h3>File Splitter</h3><p>Divide a large file into smaller downloadable parts.</p></a><div class="tool-card fv-catalog-card" data-name="file joiner"><div class="tool-icon"><i class="fa-solid fa-file-zipper"></i></div><h3>File Joiner</h3><p>Combine previously split file parts into a single complete file.</p></div><div class="tool-card fv-catalog-card" data-name="duplicate file finder"><div class="tool-icon"><i class="fa-solid fa-file-zipper"></i></div><h3>Duplicate File Finder</h3><p>Find files with matching content to help clean up clutter.</p></div><a class="tool-card fv-catalog-card" data-name="extract multiple files" href="/archive-tool/extract-multiple-files"><div class="tool-icon"><i class="fa-solid fa-file-zipper"></i></div><h3>Extract Multiple Files</h3><p>Extract the files stored in a ZIP archive.</p></a><a class="tool-card fv-catalog-card" data-name="merge zip archives" href="/archive-tool/merge-zip-archives"><div class="tool-icon"><i class="fa-solid fa-file-zipper"></i></div><h3>Merge ZIP Archives</h3><p>Combine multiple ZIP archives into one archive.</p></a><a class="tool-card fv-catalog-card" data-name="password protect zip" href="/archive-tool/password-protect-zip"><div class="tool-icon"><i class="fa-solid fa-file-zipper"></i></div><h3>Password Protect ZIP</h3><p>Create an AES-encrypted ZIP archive with a password.</p></a><a class="tool-card fv-catalog-card" data-name="extract password-protected zip" href="/archive-tool/extract-password-protected-zip"><div class="tool-icon"><i class="fa-solid fa-file-zipper"></i></div><h3>Extract Password-Protected ZIP</h3><p>Extract an encrypted ZIP archive using its password.</p></a><a class="tool-card fv-catalog-card" data-name="create tar archive" href="/archive-tool/create-tar-archive"><div class="tool-icon"><i class="fa-solid fa-file-zipper"></i></div><h3>Create TAR Archive</h3><p>Package selected files into a TAR archive.</p></a><a class="tool-card fv-catalog-card" data-name="create tar.gz archive" href="/archive-tool/create-tar-gz-archive"><div class="tool-icon"><i class="fa-solid fa-file-zipper"></i></div><h3>Create TAR.GZ Archive</h3><p>Create a gzip-compressed TAR archive.</p></a><a class="tool-card fv-catalog-card" data-name="extract tar.gz archive" href="/archive-tool/extract-tar-gz-archive"><div class="tool-icon"><i class="fa-solid fa-file-zipper"></i></div><h3>Extract TAR.GZ Archive</h3><p>Extract a TAR.GZ archive safely.</p></a></div></div><div class="section-block fv-tool-section" data-category="File Utilities"><div class="section-header"><h2><i class="fa-solid fa-folder-open"></i> File Utilities</h2></div><div class="tools-grid"><a class="tool-card fv-catalog-card" data-name="file size converter" href="/file-utility/file-size-converter"><div class="tool-icon"><i class="fa-solid fa-folder-open"></i></div><h3>File Size Converter</h3><p>Convert file size values between bytes, KB, MB and GB.</p></a><a class="tool-card fv-catalog-card" data-name="file hash generator" href="/file-utility/file-hash-generator"><div class="tool-icon"><i class="fa-solid fa-folder-open"></i></div><h3>File Hash Generator</h3><p>Calculate file hashes for integrity checks and easy verification.</p></a><a class="tool-card fv-catalog-card" data-name="file type detector" href="/file-utility/file-type-detector"><div class="tool-icon"><i class="fa-solid fa-folder-open"></i></div><h3>File Type Detector</h3><p>Identify a file format to understand what kind of data it contains.</p></a><a class="tool-card fv-catalog-card" data-name="file renamer" href="/file-utility/file-renamer"><div class="tool-icon"><i class="fa-solid fa-folder-open"></i></div><h3>File Renamer</h3><p>Manage renamer with a fast, focused file utility.</p></a><a class="tool-card fv-catalog-card" data-name="batch file renamer" href="/file-utility/batch-file-renamer"><div class="tool-icon"><i class="fa-solid fa-folder-open"></i></div><h3>Batch File Renamer</h3><p>Use Batch File Renamer to complete everyday file and content tasks in fewer steps.</p></a><a class="tool-card fv-catalog-card" data-name="file size analyzer" href="/file-utility/file-size-analyzer"><div class="tool-icon"><i class="fa-solid fa-folder-open"></i></div><h3>File Size Analyzer</h3><p>Inspect file sizes to find large files and manage storage.</p></a><a class="tool-card fv-catalog-card" data-name="file extension checker" href="/file-utility/file-extension-checker"><div class="tool-icon"><i class="fa-solid fa-folder-open"></i></div><h3>File Extension Checker</h3><p>Check filename extensions and understand common file types.</p></a><a class="tool-card fv-catalog-card" data-name="file checksum verifier" href="/file-utility/file-checksum-verifier"><div class="tool-icon"><i class="fa-solid fa-folder-open"></i></div><h3>File Checksum Verifier</h3><p>Verify file integrity by comparing its calculated checksum.</p></a><a class="tool-card fv-catalog-card" data-name="file to base64" href="/file-utility/file-to-base64"><div class="tool-icon"><i class="fa-solid fa-folder-open"></i></div><h3>File to Base64</h3><p>Convert File files into Base64 format with a simple, streamlined workflow.</p></a><a class="tool-card fv-catalog-card" data-name="base64 to file" href="/file-utility/base64-to-file"><div class="tool-icon"><i class="fa-solid fa-folder-open"></i></div><h3>Base64 to File</h3><p>Convert Base64 files into File format with a simple, streamlined workflow.</p></a></div></div><div class="section-block fv-tool-section" data-category="QR &amp; Barcode"><div class="section-header"><h2><i class="fa-solid fa-qrcode"></i> QR &amp; Barcode</h2></div><div class="tools-grid"><a href="/qr-barcode/qr-code-generator" class="fv-qr-card-link" style="text-decoration:none;color:inherit;display:block"><div class="tool-card fv-catalog-card" data-name="qr code generator"><div class="tool-icon"><i class="fa-solid fa-qrcode"></i></div><h3>QR Code Generator</h3><p>Use QR Code Generator to complete everyday file and content tasks in fewer steps.</p></div></a><a href="/qr-barcode/qr-code-scanner" class="fv-qr-card-link" style="text-decoration:none;color:inherit;display:block"><div class="tool-card fv-catalog-card" data-name="qr code scanner"><div class="tool-icon"><i class="fa-solid fa-qrcode"></i></div><h3>QR Code Scanner</h3><p>Scan a QR code image to reveal its stored information.</p></div></a><a href="/qr-barcode/wifi-qr-code-generator" class="fv-qr-card-link" style="text-decoration:none;color:inherit;display:block"><div class="tool-card fv-catalog-card" data-name="wi-fi qr code generator"><div class="tool-icon"><i class="fa-solid fa-qrcode"></i></div><h3>Wi-Fi QR Code Generator</h3><p>Use Wi-Fi QR Code Generator to complete everyday file and content tasks in fewer steps.</p></div></a><a href="/qr-barcode/vcard-qr-code-generator" class="fv-qr-card-link" style="text-decoration:none;color:inherit;display:block"><div class="tool-card fv-catalog-card" data-name="vcard qr code generator"><div class="tool-icon"><i class="fa-solid fa-qrcode"></i></div><h3>vCard QR Code Generator</h3><p>Share contact details instantly through a scannable vCard QR code.</p></div></a><a href="/qr-barcode/barcode-generator" class="fv-qr-card-link" style="text-decoration:none;color:inherit;display:block"><div class="tool-card fv-catalog-card" data-name="barcode generator"><div class="tool-icon"><i class="fa-solid fa-qrcode"></i></div><h3>Barcode Generator</h3><p>Use Barcode Generator to complete everyday file and content tasks in fewer steps.</p></div></a><a href="/qr-barcode/barcode-scanner" class="fv-qr-card-link" style="text-decoration:none;color:inherit;display:block"><div class="tool-card fv-catalog-card" data-name="barcode scanner"><div class="tool-icon"><i class="fa-solid fa-qrcode"></i></div><h3>Barcode Scanner</h3><p>Read barcode images and extract their encoded values.</p></div></a><a href="/qr-barcode/qr-code-with-logo" class="fv-qr-card-link" style="text-decoration:none;color:inherit;display:block"><div class="tool-card fv-catalog-card" data-name="qr code with logo"><div class="tool-icon"><i class="fa-solid fa-qrcode"></i></div><h3>QR Code with Logo</h3><p>Create a scannable QR code with your logo in the center.</p></div></a><a href="/qr-barcode/qr-code-color-customizer" class="fv-qr-card-link" style="text-decoration:none;color:inherit;display:block"><div class="tool-card fv-catalog-card" data-name="qr code color customizer"><div class="tool-icon"><i class="fa-solid fa-qrcode"></i></div><h3>QR Code Color Customizer</h3><p>Customize QR code colors to match your brand or design.</p></div></a></div></div><div class="section-block fv-tool-section" data-category="Text Utilities"><div class="section-header"><h2><i class="fa-solid fa-font"></i> Text Utilities</h2></div><div class="tools-grid"><a href="/text-utilities/word-counter" class="tool-card fv-catalog-card" data-name="word counter" style="text-decoration:none;color:inherit"><div class="tool-icon"><i class="fa-solid fa-font"></i></div><h3>Word Counter</h3><p>Use Word Counter to complete everyday file and content tasks in fewer steps.</p></a><a href="/text-utilities/character-counter" class="tool-card fv-catalog-card" data-name="character counter" style="text-decoration:none;color:inherit"><div class="tool-icon"><i class="fa-solid fa-font"></i></div><h3>Character Counter</h3><p>Use Character Counter to complete everyday file and content tasks in fewer steps.</p></a><a href="/text-utilities/text-case-converter" class="tool-card fv-catalog-card" data-name="text case converter" style="text-decoration:none;color:inherit"><div class="tool-icon"><i class="fa-solid fa-font"></i></div><h3>Text Case Converter</h3><p>Use Text Case Converter to complete everyday file and content tasks in fewer steps.</p></a><a href="/text-utilities/remove-duplicate-lines" class="tool-card fv-catalog-card" data-name="remove duplicate lines" style="text-decoration:none;color:inherit"><div class="tool-icon"><i class="fa-solid fa-font"></i></div><h3>Remove Duplicate Lines</h3><p>Remove duplicate lines quickly and keep your files clean and organized.</p></a><a href="/text-utilities/text-sorter" class="tool-card fv-catalog-card" data-name="text sorter" style="text-decoration:none;color:inherit"><div class="tool-icon"><i class="fa-solid fa-font"></i></div><h3>Text Sorter</h3><p>Use Text Sorter to complete everyday file and content tasks in fewer steps.</p></a><a href="/text-utilities/find-replace-text" class="tool-card fv-catalog-card" data-name="find & replace text" style="text-decoration:none;color:inherit"><div class="tool-icon"><i class="fa-solid fa-font"></i></div><h3>Find &amp; Replace Text</h3><p>Use Find &amp; Replace Text to complete everyday file and content tasks in fewer steps.</p></a><a href="/text-utilities/text-to-speech" class="tool-card fv-catalog-card" data-name="text to speech" style="text-decoration:none;color:inherit"><div class="tool-icon"><i class="fa-solid fa-font"></i></div><h3>Text to Speech</h3><p>Listen to written text using spoken audio output.</p></a><a href="/text-utilities/speech-to-text" class="tool-card fv-catalog-card" data-name="speech to text" style="text-decoration:none;color:inherit"><div class="tool-icon"><i class="fa-solid fa-font"></i></div><h3>Speech to Text</h3><p>Turn spoken words into editable text for notes and drafts.</p></a><a href="/text-utilities/text-diff-checker" class="tool-card fv-catalog-card" data-name="text diff checker" style="text-decoration:none;color:inherit"><div class="tool-icon"><i class="fa-solid fa-font"></i></div><h3>Text Diff Checker</h3><p>Compare two blocks of text and highlight what changed.</p></a><a href="/text-utilities/remove-extra-spaces" class="tool-card fv-catalog-card" data-name="remove extra spaces" style="text-decoration:none;color:inherit"><div class="tool-icon"><i class="fa-solid fa-font"></i></div><h3>Remove Extra Spaces</h3><p>Remove extra spaces quickly and keep your files clean and organized.</p></a><a href="/text-utilities/line-counter" class="tool-card fv-catalog-card" data-name="line counter" style="text-decoration:none;color:inherit"><div class="tool-icon"><i class="fa-solid fa-font"></i></div><h3>Line Counter</h3><p>Use Line Counter to complete everyday file and content tasks in fewer steps.</p></a><a href="/text-utilities/text-reverser" class="tool-card fv-catalog-card" data-name="text reverser" style="text-decoration:none;color:inherit"><div class="tool-icon"><i class="fa-solid fa-font"></i></div><h3>Text Reverser</h3><p>Use Text Reverser to complete everyday file and content tasks in fewer steps.</p></a><a href="/text-utilities/lorem-ipsum-generator" class="tool-card fv-catalog-card" data-name="lorem ipsum generator" style="text-decoration:none;color:inherit"><div class="tool-icon"><i class="fa-solid fa-font"></i></div><h3>Lorem Ipsum Generator</h3><p>Generate placeholder text for layouts, mockups and prototypes.</p></a><a href="/text-utilities/text-to-binary" class="tool-card fv-catalog-card" data-name="text to binary" style="text-decoration:none;color:inherit"><div class="tool-icon"><i class="fa-solid fa-font"></i></div><h3>Text to Binary</h3><p>Convert Text files into Binary format with a simple, streamlined workflow.</p></a><a href="/text-utilities/binary-to-text" class="tool-card fv-catalog-card" data-name="binary to text" style="text-decoration:none;color:inherit"><div class="tool-icon"><i class="fa-solid fa-font"></i></div><h3>Binary to Text</h3><p>Convert Binary files into Text format with a simple, streamlined workflow.</p></a></div></div><div class="section-block fv-tool-section" data-category="Developer Tools"><div class="section-header"><h2><i class="fa-solid fa-code"></i> Developer Tools</h2></div><div class="tools-grid"><div class="tool-card fv-catalog-card" data-name="json formatter"><div class="tool-icon"><i class="fa-solid fa-code"></i></div><h3>JSON Formatter</h3><p>Use JSON Formatter to complete everyday file and content tasks in fewer steps.</p></div><div class="tool-card fv-catalog-card" data-name="json validator"><div class="tool-icon"><i class="fa-solid fa-code"></i></div><h3>JSON Validator</h3><p>Use JSON Validator to complete everyday file and content tasks in fewer steps.</p></div><div class="tool-card fv-catalog-card" data-name="html formatter"><div class="tool-icon"><i class="fa-solid fa-code"></i></div><h3>HTML Formatter</h3><p>Use HTML Formatter to complete everyday file and content tasks in fewer steps.</p></div><div class="tool-card fv-catalog-card" data-name="css minifier"><div class="tool-icon"><i class="fa-solid fa-code"></i></div><h3>CSS Minifier</h3><p>Use CSS Minifier to complete everyday file and content tasks in fewer steps.</p></div><div class="tool-card fv-catalog-card" data-name="javascript minifier"><div class="tool-icon"><i class="fa-solid fa-code"></i></div><h3>JavaScript Minifier</h3><p>Use JavaScript Minifier to complete everyday file and content tasks in fewer steps.</p></div><div class="tool-card fv-catalog-card" data-name="url encoder / decoder"><div class="tool-icon"><i class="fa-solid fa-code"></i></div><h3>URL Encoder / Decoder</h3><p>Use URL Encoder / Decoder to complete everyday file and content tasks in fewer steps.</p></div><div class="tool-card fv-catalog-card" data-name="markdown to html"><div class="tool-icon"><i class="fa-solid fa-code"></i></div><h3>Markdown to HTML</h3><p>Convert Markdown files into HTML format with a simple, streamlined workflow.</p></div><div class="tool-card fv-catalog-card" data-name="password generator"><div class="tool-icon"><i class="fa-solid fa-code"></i></div><h3>Password Generator</h3><p>Generate strong, random passwords for your online accounts.</p></div><div class="tool-card fv-catalog-card" data-name="color picker"><div class="tool-icon"><i class="fa-solid fa-code"></i></div><h3>Color Picker</h3><p>Use Color Picker to complete everyday file and content tasks in fewer steps.</p></div><div class="tool-card fv-catalog-card" data-name="base64 text encoder / decoder"><div class="tool-icon"><i class="fa-solid fa-code"></i></div><h3>Base64 Text Encoder / Decoder</h3><p>Use Base64 Text Encoder / Decoder to complete everyday file and content tasks in fewer steps.</p></div><div class="tool-card fv-catalog-card" data-name="html minifier"><div class="tool-icon"><i class="fa-solid fa-code"></i></div><h3>HTML Minifier</h3><p>Use HTML Minifier to complete everyday file and content tasks in fewer steps.</p></div><div class="tool-card fv-catalog-card" data-name="css formatter"><div class="tool-icon"><i class="fa-solid fa-code"></i></div><h3>CSS Formatter</h3><p>Use CSS Formatter to complete everyday file and content tasks in fewer steps.</p></div><div class="tool-card fv-catalog-card" data-name="javascript formatter"><div class="tool-icon"><i class="fa-solid fa-code"></i></div><h3>JavaScript Formatter</h3><p>Use JavaScript Formatter to complete everyday file and content tasks in fewer steps.</p></div><div class="tool-card fv-catalog-card" data-name="xml formatter"><div class="tool-icon"><i class="fa-solid fa-code"></i></div><h3>XML Formatter</h3><p>Use XML Formatter to complete everyday file and content tasks in fewer steps.</p></div><div class="tool-card fv-catalog-card" data-name="xml validator"><div class="tool-icon"><i class="fa-solid fa-code"></i></div><h3>XML Validator</h3><p>Use XML Validator to complete everyday file and content tasks in fewer steps.</p></div><div class="tool-card fv-catalog-card" data-name="regex tester"><div class="tool-icon"><i class="fa-solid fa-code"></i></div><h3>Regex Tester</h3><p>Test regular expressions against sample text and inspect matches.</p></div><div class="tool-card fv-catalog-card" data-name="jwt decoder"><div class="tool-icon"><i class="fa-solid fa-code"></i></div><h3>JWT Decoder</h3><p>Read the header and payload of a JWT for easier debugging.</p></div><div class="tool-card fv-catalog-card" data-name="uuid generator"><div class="tool-icon"><i class="fa-solid fa-code"></i></div><h3>UUID Generator</h3><p>Generate unique identifiers for apps, databases and testing.</p></div></div></div><div class="section-block fv-tool-section" data-category="Image Inspection"><div class="section-header"><h2><i class="fa-solid fa-magnifying-glass"></i> Image Inspection</h2></div><div class="tools-grid"><a class="tool-card fv-catalog-card" data-name="image dpi checker" href="/image-inspection/image-dpi-checker"><div class="tool-icon"><i class="fa-solid fa-magnifying-glass"></i></div><h3>Image DPI Checker</h3><p>Check image resolution and DPI information for print preparation.</p></a><a class="tool-card fv-catalog-card" data-name="image aspect ratio calculator" href="/image-inspection/image-aspect-ratio-calculator"><div class="tool-icon"><i class="fa-solid fa-magnifying-glass"></i></div><h3>Image Aspect Ratio Calculator</h3><p>Calculate the aspect ratio of an image from its dimensions.</p></a><a class="tool-card fv-catalog-card" data-name="image exif viewer" href="/image-inspection/image-exif-viewer"><div class="tool-icon"><i class="fa-solid fa-magnifying-glass"></i></div><h3>Image EXIF Viewer</h3><p>View camera and capture metadata stored inside image files.</p></a><a class="tool-card fv-catalog-card" data-name="image dimension checker" href="/image-inspection/image-dimension-checker"><div class="tool-icon"><i class="fa-solid fa-magnifying-glass"></i></div><h3>Image Dimension Checker</h3><p>Read an image’s exact width and height in pixels.</p></a><a class="tool-card fv-catalog-card" data-name="image histogram" href="/image-inspection/image-histogram"><div class="tool-icon"><i class="fa-solid fa-magnifying-glass"></i></div><h3>Image Histogram</h3><p>Explore the distribution of brightness and colors in an image.</p></a><a class="tool-card fv-catalog-card" data-name="image color picker" href="/image-inspection/image-color-picker"><div class="tool-icon"><i class="fa-solid fa-magnifying-glass"></i></div><h3>Image Color Picker</h3><p>Work with image color picker using a clean, easy-to-use tool.</p></a><a class="tool-card fv-catalog-card" data-name="image transparency checker" href="/image-inspection/image-transparency-checker"><div class="tool-icon"><i class="fa-solid fa-magnifying-glass"></i></div><h3>Image Transparency Checker</h3><p>Check whether an image contains transparent pixels or an opaque background.</p></a><a class="tool-card fv-catalog-card" data-name="image format detector" href="/image-inspection/image-format-detector"><div class="tool-icon"><i class="fa-solid fa-magnifying-glass"></i></div><h3>Image Format Detector</h3><p>Identify the actual image format before converting or sharing.</p></a><a class="tool-card fv-catalog-card" data-name="image quality analyzer" href="/image-inspection/image-quality-analyzer"><div class="tool-icon"><i class="fa-solid fa-magnifying-glass"></i></div><h3>Image Quality Analyzer</h3><p>Inspect image characteristics that influence clarity and visual quality.</p></a><a class="tool-card fv-catalog-card" data-name="image comparison tool" href="/image-inspection/image-comparison-tool"><div class="tool-icon"><i class="fa-solid fa-magnifying-glass"></i></div><h3>Image Comparison Tool</h3><p>Compare two images side by side to inspect visual differences.</p></a></div></div><div class="section-block fv-tool-section" data-category="Extra Utilities"><div class="section-header"><h2><i class="fa-solid fa-toolbox"></i> Extra Utilities</h2></div><div class="tools-grid"><div class="tool-card fv-catalog-card" data-name="font file converter" role="link" tabindex="0" onclick="window.location.href='/extra-utilities/font-file-converter'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='/extra-utilities/font-file-converter'}"><div class="tool-icon"><i class="fa-solid fa-toolbox"></i></div><h3>Font File Converter</h3><p>Use Font File Converter to complete everyday file and content tasks in fewer steps.</p></div><div class="tool-card fv-catalog-card" data-name="font previewer" role="link" tabindex="0" onclick="window.location.href='/extra-utilities/font-previewer'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='/extra-utilities/font-previewer'}"><div class="tool-icon"><i class="fa-solid fa-toolbox"></i></div><h3>Font Previewer</h3><p>Preview how text looks in different font files before using them.</p></div><div class="tool-card fv-catalog-card" data-name="color contrast checker" role="link" tabindex="0" onclick="window.location.href='/extra-utilities/color-contrast-checker'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='/extra-utilities/color-contrast-checker'}"><div class="tool-icon"><i class="fa-solid fa-toolbox"></i></div><h3>Color Contrast Checker</h3><p>Check text and background color contrast for readability.</p></div><div class="tool-card fv-catalog-card" data-name="unit converter" role="link" tabindex="0" onclick="window.location.href='/extra-utilities/unit-converter'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='/extra-utilities/unit-converter'}"><div class="tool-icon"><i class="fa-solid fa-toolbox"></i></div><h3>Unit Converter</h3><p>Convert between common units quickly with clear results.</p></div><div class="tool-card fv-catalog-card" data-name="date calculator" role="link" tabindex="0" onclick="window.location.href='/extra-utilities/date-calculator'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='/extra-utilities/date-calculator'}"><div class="tool-icon"><i class="fa-solid fa-toolbox"></i></div><h3>Date Calculator</h3><p>Calculate the number of days between dates or add time intervals.</p></div><div class="tool-card fv-catalog-card" data-name="timestamp converter" role="link" tabindex="0" onclick="window.location.href='/extra-utilities/timestamp-converter'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='/extra-utilities/timestamp-converter'}"><div class="tool-icon"><i class="fa-solid fa-toolbox"></i></div><h3>Timestamp Converter</h3><p>Convert Unix timestamps into readable dates and back.</p></div><div class="tool-card fv-catalog-card" data-name="url parser" role="link" tabindex="0" onclick="window.location.href='/extra-utilities/url-parser'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='/extra-utilities/url-parser'}"><div class="tool-icon"><i class="fa-solid fa-toolbox"></i></div><h3>URL Parser</h3><p>Break a URL into its domain, path, query and other components.</p></div><div class="tool-card fv-catalog-card" data-name="html entity encoder / decoder" role="link" tabindex="0" onclick="window.location.href='/extra-utilities/html-entity-encoder-decoder'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='/extra-utilities/html-entity-encoder-decoder'}"><div class="tool-icon"><i class="fa-solid fa-toolbox"></i></div><h3>HTML Entity Encoder / Decoder</h3><p>Use HTML Entity Encoder / Decoder to complete everyday file and content tasks in fewer steps.</p></div><div class="tool-card fv-catalog-card" data-name="css gradient generator" role="link" tabindex="0" onclick="window.location.href='/extra-utilities/css-gradient-generator'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='/extra-utilities/css-gradient-generator'}"><div class="tool-icon"><i class="fa-solid fa-toolbox"></i></div><h3>CSS Gradient Generator</h3><p>Build smooth CSS gradients and copy the generated code.</p></div><div class="tool-card fv-catalog-card" data-name="meta tag generator" role="link" tabindex="0" onclick="window.location.href='/extra-utilities/meta-tag-generator'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='/extra-utilities/meta-tag-generator'}"><div class="tool-icon"><i class="fa-solid fa-toolbox"></i></div><h3>Meta Tag Generator</h3><p>Create essential HTML meta tags for your website pages.</p></div><div class="tool-card fv-catalog-card" data-name="robots.txt generator" role="link" tabindex="0" onclick="window.location.href='/extra-utilities/robots-txt-generator'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='/extra-utilities/robots-txt-generator'}"><div class="tool-icon"><i class="fa-solid fa-toolbox"></i></div><h3>Robots.txt Generator</h3><p>Create robots.txt rules to guide search engine crawlers.</p></div><div class="tool-card fv-catalog-card" data-name="sitemap generator" role="link" tabindex="0" onclick="window.location.href='/extra-utilities/sitemap-generator'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='/extra-utilities/sitemap-generator'}"><div class="tool-icon"><i class="fa-solid fa-toolbox"></i></div><h3>Sitemap Generator</h3><p>Generate a sitemap structure to help search engines find pages.</p></div><div class="tool-card fv-catalog-card" data-name="open graph preview" role="link" tabindex="0" onclick="window.location.href='/extra-utilities/open-graph-preview'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='/extra-utilities/open-graph-preview'}"><div class="tool-icon"><i class="fa-solid fa-toolbox"></i></div><h3>Open Graph Preview</h3><p>Preview how your page title and image may appear when shared.</p></div><div class="tool-card fv-catalog-card" data-name="markdown editor" role="link" tabindex="0" onclick="window.location.href='/extra-utilities/markdown-editor'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='/extra-utilities/markdown-editor'}"><div class="tool-icon"><i class="fa-solid fa-toolbox"></i></div><h3>Markdown Editor</h3><p>Write and preview Markdown with a simple, focused workspace.</p></div><div class="tool-card fv-catalog-card" data-name="html live preview" role="link" tabindex="0" onclick="window.location.href='/extra-utilities/html-live-preview'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='/extra-utilities/html-live-preview'}"><div class="tool-icon"><i class="fa-solid fa-toolbox"></i></div><h3>HTML Live Preview</h3><p>Write HTML and instantly see how it renders in your browser.</p></div><div class="tool-card fv-catalog-card" data-name="text file merger" role="link" tabindex="0" onclick="window.location.href='/extra-utilities/text-file-merger'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='/extra-utilities/text-file-merger'}"><div class="tool-icon"><i class="fa-solid fa-toolbox"></i></div><h3>Text File Merger</h3><p>Use Text File Merger to complete everyday file and content tasks in fewer steps.</p></div><div class="tool-card fv-catalog-card" data-name="csv viewer" role="link" tabindex="0" onclick="window.location.href='/extra-utilities/csv-viewer'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='/extra-utilities/csv-viewer'}"><div class="tool-icon"><i class="fa-solid fa-toolbox"></i></div><h3>CSV Viewer</h3><p>Open CSV data in an easy-to-read table layout.</p></div><div class="tool-card fv-catalog-card" data-name="json viewer" role="link" tabindex="0" onclick="window.location.href='/extra-utilities/json-viewer'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='/extra-utilities/json-viewer'}"><div class="tool-icon"><i class="fa-solid fa-toolbox"></i></div><h3>JSON Viewer</h3><p>Explore JSON data in a structured, readable view.</p></div><div class="tool-card fv-catalog-card" data-name="xml viewer" role="link" tabindex="0" onclick="window.location.href='/extra-utilities/xml-viewer'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='/extra-utilities/xml-viewer'}"><div class="tool-icon"><i class="fa-solid fa-toolbox"></i></div><h3>XML Viewer</h3><p>Inspect XML content in a clear, organized format.</p></div><div class="tool-card fv-catalog-card" data-name="html table generator" role="link" tabindex="0" onclick="window.location.href='/extra-utilities/html-table-generator'" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.location.href='/extra-utilities/html-table-generator'}"><div class="tool-icon"><i class="fa-solid fa-toolbox"></i></div><h3>HTML Table Generator</h3><p>Build HTML tables from structured rows and columns.</p></div></div></div></div>
+</section>
+
+<!-- ================= SEPARATE SECTION: MESSAGE & FORM ================= -->
+<section class="separate-section" id="contact">
+<div class="contact-wrapper">
+<div class="contact-left">
+<h2>Let's get started.</h2>
+<p>Whether you're organizing files, converting documents, or securing data, we're here to help.</p>
+</div>
+<div class="contact-card">
+<form id="contactForm" method="post" action="/contact">
+<div class="form-grid">
+<div class="form-group">
+<label>Name</label>
+<input class="form-control" name="name" placeholder="Your name" required type="text"/>
+</div>
+<div class="form-group">
+<label>Email</label>
+<input class="form-control" name="email" placeholder="you@email.com" required type="email"/>
+</div>
+</div>
+<div class="form-grid">
+<div class="form-group">
+<label>Phone</label>
+<input class="form-control" name="phone" placeholder="+91 (000) 000-0000" type="text"/>
+</div>
+<div class="form-group">
+<label>How did you find us?</label>
+<input class="form-control" name="source" placeholder="Select an option" type="text"/>
+</div>
+</div>
+<div class="form-group full">
+<label>Message</label>
+<textarea class="form-control" name="message" placeholder="What would you like our help with?" required></textarea>
+</div>
+<button class="submit-btn" type="submit">SUBMIT <i class="fa-solid fa-arrow-right"></i></button>
+</form>
+</div>
+</div>
+</section>
+<!-- ================= YELLOWBEE STYLE FOOTER & SOCIALS ================= -->
+<footer class="yellowbee-footer">
+<div class="footer-inner"><a aria-label="FileVellum home" class="footer-brand" href="#"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="FileVellum logo"></a><div class="footer-right"><a class="footer-email" href="mailto:filevellum@gmail.com">FILEVELLUM@GMAIL.COM</a><div class="social-icons">
+<a aria-label="Instagram" class="social-icon-btn" href="https://www.instagram.com/yashrajsinghgujjar/" rel="noopener noreferrer" target="_blank" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+<a aria-label="YouTube" class="social-icon-btn" href="https://www.youtube.com/"  rel="noopener noreferrer" target="_blank" title="YouTube"><i class="fa-brands fa-youtube"></i></a>
+<a aria-label="LinkedIn" class="social-icon-btn" href="https://www.linkedin.com/in/yashrajsinghgujjar/" rel="noopener noreferrer" target="_blank" title="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+<a aria-label="Facebook" class="social-icon-btn" href="https://www.facebook.com/yashrajsinghgujjar" rel="noopener noreferrer" target="_blank" title="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+<a aria-label="GitHub" class="social-icon-btn" href="https://github.com/yashrajsinghgujjar" rel="noopener noreferrer" target="_blank" title="GitHub"><i class="fa-brands fa-github"></i></a>
+<a aria-label="Portfolio Website" class="social-icon-btn" href="https://yashrajsinghgujjar.vercel.app/" rel="noopener noreferrer" target="_blank"  title="Portfolio Website"><i class="fa-solid fa-globe"></i></a></div></div></div>
+<div class="footer-bottom-row">
+<span>© 2026 FILEVELLUM. ALL RIGHTS RESERVED.</span>
+<span>Your Files, Endless Possibilities.</span>
+</div>
+</footer>
+<!-- GSAP and ScrollTrigger CDN Scripts for Ultimate Scroll Physics -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+<script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        const track = document.getElementById('marqueeTrack');
+        const scrollArea = document.querySelector('.scroll-container');
+        const words = track.querySelectorAll('.word-text');
+        let startX = 0;
+        let endX = 0;
+
+        function measureHeading() {
+            const first = words[0];
+            const last = words[words.length - 1];
+            const center = window.innerWidth / 2;
+            // First word starts in the center, and last word ends in the center.
+            startX = center - (first.offsetLeft + first.offsetWidth / 2);
+            endX = center - (last.offsetLeft + last.offsetWidth / 2);
+            const travel = Math.abs(endX - startX);
+            scrollArea.style.height = `${window.innerHeight + Math.max(500, travel * 0.9)}px`;
+        }
+        measureHeading();
+        gsap.set(track, { x: () => startX });
+        gsap.fromTo(track,
+            { x: () => startX },
+            {
+                x: () => endX,
+                ease: 'none',
+                scrollTrigger: {
+                    trigger: '.scroll-container',
+                    start: 'top top',
+                    end: 'bottom bottom',
+                    scrub: 0.8,
+                    invalidateOnRefresh: true
+                }
+            }
+        );
+        window.addEventListener('resize', () => {
+            measureHeading();
+            ScrollTrigger.refresh();
+        });
+    </script>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const search=document.getElementById('fvToolSearch'),clear=document.getElementById('fvSearchClear'),count=document.getElementById('fvResultCount'),none=document.getElementById('fvNoResults');
+ const sections=[...document.querySelectorAll('.fv-tool-section')],cards=[...document.querySelectorAll('.fv-catalog-card')],pills=[...document.querySelectorAll('#fvCategoryPills button')];let category='all';
+ function update(){const q=search.value.toLocaleLowerCase().trim();let shown=0;sections.forEach(sec=>{let n=0;const catOK=category==='all'||sec.dataset.category===category;sec.querySelectorAll('.fv-catalog-card').forEach(card=>{const ok=catOK&&(!q||card.dataset.name.includes(q));card.hidden=!ok;if(ok){n++;shown++}});sec.hidden=n===0});count.textContent=(q===''&&category==='all')?'220+ tools':shown+' tools found';none.hidden=shown!==0;clear.hidden=!search.value}
+ search.addEventListener('input',update);clear.addEventListener('click',()=>{search.value='';update();search.focus()});pills.forEach(btn=>btn.addEventListener('click',()=>{category=btn.dataset.category;pills.forEach(p=>p.classList.toggle('active',p===btn));update()}));
+ document.addEventListener('keydown',e=>{if(e.key==='/'&&!['INPUT','TEXTAREA'].includes(document.activeElement.tagName)){e.preventDefault();document.getElementById('tools').scrollIntoView({behavior:'smooth'});search.focus()}if(e.key==='Escape'&&document.activeElement===search){search.blur()}});
+ update();
+});
+</script>
+<script id="fv-developer-tool-navigation">
+(function () {
+  const routes = {
+    "json formatter": "json-formatter",
+    "json validator": "json-validator",
+    "html formatter": "html-formatter",
+    "css minifier": "css-minifier",
+    "javascript minifier": "javascript-minifier",
+    "url encoder / decoder": "url-encoder-decoder",
+    "markdown to html": "markdown-to-html",
+    "password generator": "password-generator",
+    "color picker": "color-picker",
+    "base64 text encoder / decoder": "base64-text-encoder-decoder",
+    "html minifier": "html-minifier",
+    "css formatter": "css-formatter",
+    "javascript formatter": "javascript-formatter",
+    "xml formatter": "xml-formatter",
+    "xml validator": "xml-validator",
+    "regex tester": "regex-tester",
+    "jwt decoder": "jwt-decoder",
+    "uuid generator": "uuid-generator"
+  };
+  document.querySelectorAll('.fv-tool-section[data-category="Developer Tools"] .fv-catalog-card').forEach(card => {
+    const key = (card.dataset.name || '').trim().toLowerCase();
+    if (!routes[key]) return;
+    const url = '/developer-tools/' + routes[key];
+    card.style.cursor = 'pointer';
+    card.setAttribute('role', 'link');
+    card.setAttribute('tabindex', '0');
+    card.addEventListener('click', () => { window.location.href = url; });
+    card.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); window.location.href = url; }
+    });
+  });
+})();
+</script>
+
+
+<script id="filevellum-contact-form">
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('contactForm');
+  if (!form) return;
+  form.addEventListener('submit', async function (event) {
+    event.preventDefault();
+    const button = form.querySelector('button[type="submit"]');
+    const originalText = button ? button.innerHTML : '';
+    if (button) { button.disabled = true; button.textContent = 'SENDING...'; }
+    try {
+      const response = await fetch(form.action, { method: 'POST', body: new FormData(form) });
+      const result = await response.json();
+      if (!response.ok || !result.success) throw new Error(result.error || 'Message could not be sent.');
+      alert(result.message || 'Your message has been sent successfully.');
+      form.reset();
+    } catch (error) {
+      alert(error.message || 'Message could not be sent. Please try again.');
+    } finally {
+      if (button) { button.disabled = false; button.innerHTML = originalText; }
+    }
+  });
+});
+</script>
+</body>
+</html>
